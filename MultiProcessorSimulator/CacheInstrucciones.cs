@@ -12,7 +12,7 @@ namespace MultiProcessorSimulator
 
         public CacheInstrucciones()
         {
-            CI = new int[4, 14];
+            CI = new int[4, 17];
         }
     }
 }
