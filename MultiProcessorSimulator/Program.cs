@@ -12,8 +12,11 @@ namespace MultiProcessorSimulator
 
         static void Main(string[] args)
         {
+            VistaSimulador pantallaPrincipal = new VistaSimulador();
+            pantallaPrincipal.Show();
+            /*
             Simulador simulador = new Simulador();
-            simulador.correr();
+            simulador.correr();*/
         }
 
         

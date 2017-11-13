@@ -9,27 +9,30 @@ namespace MultiProcessorSimulator
 {
     class Simulador
     {
-        private MemCompartida memCompartida;
-        private MemInstrucciones memInstrucciones;
+        private int[] memCompartidaP0; // size = 64
+        private int[] memCompartidaP1; // size = 32
+        private int[] memInstruccionesP0; // size = 384
+        private int[] memInstruccionesP1; // size = 256
 
-        private CacheDatos cacheDatosN0;
-        private CacheDatos cacheDatosN1;
-        private CacheDatos cacheDatosN2;
+        private int[,] cacheDatosN0;// 4x6
+        private int[,] cacheDatosN1;// 4x6
+        private int[,] cacheDatosN2;// 4x6
 
-        private CacheInstrucciones cacheInstruccionesN0;
-        private CacheInstrucciones cacheInstruccionesN1;
-        private CacheInstrucciones cacheInstruccionesN2;
+        private int[,] cacheInstruccionesN0;// 4x17
+        private int[,] cacheInstruccionesN1;// 4x17
+        private int[,] cacheInstruccionesN2;// 4x17
 
-        private Directorios directorios;
-        private Contexto contextoP0;
-        private Contexto contextoP1;
+        private int[,] directorioP0;//16x4
+        private int[,] directorioP1;//8x4
+        private int[,] contextoP0; //7x36
+        private int[,] contextoP1; //7x36
 
-        private Registros registrosN0;
-        private Registros registrosN1;
-        private Registros registrosN2;
-        private RegistrosInstruccion rInstruccionN0;
-        private RegistrosInstruccion rInstruccionN1;
-        private RegistrosInstruccion rInstruccionN2;
+        private int[] registrosN0;// size = 32
+        private int[] registrosN1;// size = 32
+        private int[] registrosN2;// size = 32
+        private int[] rInstruccionN0;// size = 4
+        private int[] rInstruccionN1;// size = 4
+        private int[] rInstruccionN2;// size = 4
 
         public void correr()
         {
@@ -39,11 +42,11 @@ namespace MultiProcessorSimulator
             //Inicializo estructuras
             inicializar();
             //Lleno memoria de instrucciones
-            guardarInstrucciones(memInstrucciones.I0, hilosP0);
-            guardarInstrucciones(memInstrucciones.I1, hilosP1);
+            guardarInstrucciones(memInstruccionesP0, hilosP0);
+            guardarInstrucciones(memInstruccionesP1, hilosP1);
             //Imprimo memoria de instrucciones para verificar
-            printMemoria(memInstrucciones.I0);
-            printMemoria(memInstrucciones.I1);
+            printMemoria(memInstruccionesP0);
+            printMemoria(memInstruccionesP1);
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
@@ -54,28 +57,31 @@ namespace MultiProcessorSimulator
         public void inicializar()
         {
             //Inicializo las memorias de instrucciones
-            memInstrucciones = new MemInstrucciones();
+            memInstruccionesP0 = new int[384]; // size = 384
+            memInstruccionesP1 = new int[256]; // size = 256
             //Inicializo la memoria compartida
-            memCompartida = new MemCompartida();
+            memCompartidaP0 = new int[64]; // size = 64
+            memCompartidaP1 = new int[32]; // size = 32
             //Inicializo registros
-            registrosN0 = new Registros();
-            registrosN1 = new Registros();
-            registrosN2 = new Registros();
+            registrosN0 = new int[32];
+            registrosN1 = new int[32];
+            registrosN2 = new int[32];
             //Inicializo registros de instrucciones
-            rInstruccionN0 = new RegistrosInstruccion();
-            rInstruccionN1 = new RegistrosInstruccion();
-            rInstruccionN2 = new RegistrosInstruccion();
+            rInstruccionN0 = new int[4];
+            rInstruccionN1 = new int[4];
+            rInstruccionN2 = new int[4];
             //Inicializo caches
-            cacheDatosN0 = new CacheDatos();
-            cacheDatosN1 = new CacheDatos();
-            cacheDatosN2 = new CacheDatos();
+            cacheDatosN0 = new int[4,6];
+            cacheDatosN1 = new int[4, 6];
+            cacheDatosN2 = new int[4, 6];
             //Inicializo caches de instrucciones
-            cacheInstruccionesN0 = new CacheInstrucciones();
-            cacheInstruccionesN1 = new CacheInstrucciones();
-            cacheInstruccionesN2 = new CacheInstrucciones();
+            cacheInstruccionesN0 = new int[4, 17];
+            cacheInstruccionesN1 = new int[4, 17];
+            cacheInstruccionesN2 = new int[4, 17];
             //Inicializo directorios
-            directorios = new Directorios();
-        }
+            directorioP0 = new int[16,4];//16x4
+            directorioP1 = new int[8, 4];//8x4
+    }
 
         public string[] solicitarHilos(int proc)
         {
