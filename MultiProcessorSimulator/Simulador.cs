@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MultiProcessorSimulator
@@ -42,11 +43,21 @@ namespace MultiProcessorSimulator
             //Inicializo estructuras
             inicializar();
             //Lleno memoria de instrucciones
-            guardarInstrucciones(memInstruccionesP0, hilosP0);
-            guardarInstrucciones(memInstruccionesP1, hilosP1);
+            guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0);
+            guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1);
+
+            
+
             //Imprimo memoria de instrucciones para verificar
             printMemoria(memInstruccionesP0);
             printMemoria(memInstruccionesP1);
+        
+            printContexto();
+
+
+            Thread nucleo0 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo0.Start();
+
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
@@ -82,7 +93,11 @@ namespace MultiProcessorSimulator
             //Inicializo directorios
             directorioP0 = new int[16,4];//16x4
             directorioP1 = new int[8, 4];//8x4
-    }
+
+            //Inicializo directorios
+            contextoP0 = new int[7,36];
+            contextoP1 = new int[7, 36];
+        }
 
         public string[] solicitarHilos(int proc)
         {
@@ -149,13 +164,18 @@ namespace MultiProcessorSimulator
             return Int32.Parse(res);
         }
 
-        public void guardarInstrucciones(int[] mem, string[] hilos)
+        // EFECTO: Guarda las instrucciones en la memoria y crea los contextos iniciales
+        // REQUIERE: contexto destino, memoria donde se guardaran los hilillos, los hilillos fuente
+        // MODIFICA: 
+        public void guardarInstrucciones(int [,] contexto, int[] mem, string[] hilillos)
         {
+
             string[] lines;
             int bloque = 0;
-            for (int i = 0; i< hilos.Length; ++i)
+            for (int i = 0; i< hilillos.Length; ++i)
             {
-                lines = System.IO.File.ReadAllLines(hilos[i]);
+                contexto[i,0] = bloque;
+                lines = System.IO.File.ReadAllLines(hilillos[i]);
                 foreach (string line in lines)
                 {
                     string[] aux = line.Split(' ');
@@ -178,7 +198,7 @@ namespace MultiProcessorSimulator
         }
 
         public void logicaNucleo() {
-            
+            Console.WriteLine("Impreso desdel el nucleo 1");
         }
 
         public void printMemoria(int [] mem)
@@ -198,6 +218,26 @@ namespace MultiProcessorSimulator
                     cont = 0;
                 }
               
+            }
+        }
+
+        public void printContexto()
+        {
+            Console.Write("Contexto 0\n");
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 36; j++) {
+                    Console.Write(contextoP0[i,j] + " ");
+                }
+                Console.Write("\n");
+            }
+            Console.Write("Contexto 1\n");
+            for (int i = 0; i < 7; i++)
+            {
+                for (int j = 0; j < 36; j++)
+                {
+                    Console.Write(contextoP1[i, j] + " ");
+                }
+                Console.Write("\n");
             }
         }
     }
