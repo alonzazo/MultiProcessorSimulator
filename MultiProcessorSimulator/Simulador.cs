@@ -35,6 +35,8 @@ namespace MultiProcessorSimulator
         private int[] rInstruccionN1;// size = 4
         private int[] rInstruccionN2;// size = 4
 
+        Barrier barrera;
+
         public void correr()
         {
             string [] hilosP0 = solicitarHilos(0);
@@ -54,9 +56,18 @@ namespace MultiProcessorSimulator
         
             printContexto();
 
+            barrera = new Barrier(4); //Inicializacion de la barrera
 
             Thread nucleo0 = new Thread(new ThreadStart(logicaNucleo));
             nucleo0.Start();
+
+            Thread nucleo1 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo1.Start();
+
+            Thread nucleo2 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo2.Start();
+
+            barrera.SignalAndWait(); // Barrera de finalización
 
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
@@ -199,6 +210,7 @@ namespace MultiProcessorSimulator
 
         public void logicaNucleo() {
             Console.WriteLine("Impreso desdel el nucleo 1");
+            barrera.SignalAndWait();
         }
 
         public void printMemoria(int [] mem)
