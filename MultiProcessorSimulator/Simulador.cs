@@ -51,6 +51,7 @@ namespace MultiProcessorSimulator
             Console.WriteLine("\n");
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
             int modo = Int32.Parse(Console.ReadLine());
+            
             //Asignar a cada procesador sus hilos correpondientes
         }
 
@@ -173,6 +174,10 @@ namespace MultiProcessorSimulator
                     break;
                 }
             }
+            
+        }
+
+        public void logicaNucleo() {
             
         }
 
