@@ -48,40 +48,38 @@ namespace MultiProcessorSimulator
             //Lleno memoria de instrucciones
             guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0);
             guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1);
-            /*
-                        //Imprimo memoria de instrucciones para verificar
-                        Console.WriteLine("Memoria instrucciones P0");
-                        printMemoria(memInstruccionesP0);
-                            Console.Write("\n");
-                        Console.WriteLine("Memoria instrucciones P1");
-                        printMemoria(memInstruccionesP1);
-                        Console.WriteLine("");
-                        printContexto();
+            
+            //Imprimo memoria de instrucciones para verificar
+            Console.WriteLine("Memoria instrucciones P0");
+            printMemoria(memInstruccionesP0);
+                Console.Write("\n");
+            Console.WriteLine("Memoria instrucciones P1");
+            printMemoria(memInstruccionesP1);
+            Console.WriteLine("");
+            printContexto();
 
-                        barrera = new Barrier(4); //Inicializacion de la barrera
+            barrera = new Barrier(4); //Inicializacion de la barrera
 
-                        Thread nucleo0 = new Thread(new ThreadStart(logicaNucleo));
-                        nucleo0.Start();
+            Thread nucleo0 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo0.Start();
 
-                        Thread nucleo1 = new Thread(new ThreadStart(logicaNucleo));
-                        nucleo1.Start();
+            Thread nucleo1 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo1.Start();
 
-                        Thread nucleo2 = new Thread(new ThreadStart(logicaNucleo));
-                        nucleo2.Start();
+            Thread nucleo2 = new Thread(new ThreadStart(logicaNucleo));
+            nucleo2.Start();
 
-                        barrera.SignalAndWait(); // Barrera de finalización
+            barrera.SignalAndWait(); // Barrera de finalización
 
-                        //Pregunto por modo de ejecucion
-                        Console.WriteLine("\n");
-                        Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
-                        int modo = Int32.Parse(Console.ReadLine());
+            //Pregunto por modo de ejecucion
+            Console.WriteLine("\n");
+            Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
+            int modo = Int32.Parse(Console.ReadLine());
 
-                        //Asignar a cada procesador sus hilos correpondientes
+            //Asignar a cada procesador sus hilos correpondientes
 
-                        //finalizar
-                        finalizar(hilosP0, hilosP1);*/
+            //finalizar
             finalizar(hilosP0, hilosP1);
-            Console.Read();
         }
 
         public void inicializar()
