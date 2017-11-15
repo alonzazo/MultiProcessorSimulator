@@ -47,16 +47,18 @@ namespace MultiProcessorSimulator
             cicloActual = 0;
             //Inicializo estructuras
             inicializar();
+
             //Lleno memoria de instrucciones
             guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0);
             guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1);
-
             
-
             //Imprimo memoria de instrucciones para verificar
+            Console.WriteLine("Memoria instrucciones P0");
             printMemoria(memInstruccionesP0);
+                Console.Write("\n");
+            Console.WriteLine("Memoria instrucciones P1");
             printMemoria(memInstruccionesP1);
-        
+            Console.WriteLine("");
             printContexto();
 
             barrera = new Barrier(4);                                           //Inicializacion de la barrera
@@ -86,8 +88,11 @@ namespace MultiProcessorSimulator
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
 
             int modo = Int32.Parse(Console.ReadLine());
-            
+
             //Asignar a cada procesador sus hilos correpondientes
+
+            //finalizar
+            finalizar(hilosP0, hilosP1);
         }
 
         public void inicializar()
@@ -110,13 +115,23 @@ namespace MultiProcessorSimulator
             cacheDatosN0 = new int[4,6];
             cacheDatosN1 = new int[4, 6];
             cacheDatosN2 = new int[4, 6];
+            iniciarCache(cacheDatosN0);
+            iniciarCache(cacheDatosN1);
+            iniciarCache(cacheDatosN2);
+
             //Inicializo caches de instrucciones
             cacheInstruccionesN0 = new int[4, 17];
             cacheInstruccionesN1 = new int[4, 17];
             cacheInstruccionesN2 = new int[4, 17];
+            iniciarCache(cacheInstruccionesN0);
+            iniciarCache(cacheInstruccionesN1);
+            iniciarCache(cacheInstruccionesN2);
+
             //Inicializo directorios
             directorioP0 = new int[16,4];//16x4
             directorioP1 = new int[8, 4];//8x4
+            iniciarDirectorio(directorioP0);
+            iniciarDirectorio(directorioP1); 
 
             //Inicializo directorios
             contextoP0 = new int[7][];
@@ -125,6 +140,58 @@ namespace MultiProcessorSimulator
             for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[36];
 
         }
+
+        public void iniciarCache(int[,] cache)
+        {
+            //Inicializo los numero de bloque con -1
+            for (int i = 0; i < 4; ++i)
+            {
+                cache[i, 0] = -1;
+            }
+        }
+
+        public void iniciarDirectorio(int[,] Dir)
+        {
+            for(int i =0; i < Dir.GetLength(0); ++i)
+            {
+                Dir[i, 1] = 1;
+                Dir[i, 2] = 1;
+                Dir[i, 3] = 1;
+            }
+        }
+
+        public void printCache(int[,] cache)
+        {
+            int cont = 0;
+            for (int i = 0; i < cache.GetLength(0); ++i)
+            {
+                for (int j = 0; j < cache.GetLength(1); ++j)
+                {
+                    ++cont;
+                    Console.Write(cache[i, j]);
+                    if(cache.GetLength(1) == 17)
+                    {
+                        if (j == 0)
+                        {
+                            Console.Write(" ");
+                            cont = 0;
+                        }
+                        else if (cont == 4)
+                        {
+                            Console.Write(" ");
+                            cont = 0;
+                        }
+                    }
+                    else
+                    {
+                        Console.Write(" ");
+                    }
+                        
+                }
+                Console.Write("\n");
+            } 
+        }
+
 
         public string[] solicitarHilos(int proc)
         {
@@ -232,7 +299,7 @@ namespace MultiProcessorSimulator
             for(int i = 0; i< mem.Length; ++i)
             {
                 ++cont;
-                if( i % 64 == 0)
+                if( i % 64 == 0 && i != 0)
                 {
                     Console.Write("\n");
                 }
@@ -262,6 +329,112 @@ namespace MultiProcessorSimulator
                 {
                     Console.Write(contextoP1[i][j] + " ");
                 }
+                Console.Write("\n");
+            }
+        }
+
+        // EFECTO: Ejecuta instrucción daddi
+        // REQUIERE: vector de registros, vector de registro de instrucciones
+        // MODIFICA: 
+        public void daddi(int[] R, int[] IR)
+        {
+            R[IR[2]] = R[IR[1]] + IR[3];
+        }
+
+        // EFECTO: Ejecuta instrucción dadd
+        // REQUIERE: vector de registros, vector de registro de instrucciones
+        // MODIFICA: 
+        public void dadd(int[] R, int[] IR)
+        {
+            R[IR[3]] = R[IR[1]] + R[IR[2]];
+        }
+
+        // EFECTO: Ejecuta instrucción dmul
+        // REQUIERE: vector de registros, vector de registro de instrucciones
+        // MODIFICA: 
+        public void dmul(int[] R, int[] IR)
+        {
+            R[IR[3]] = R[IR[1]] * R[IR[2]];
+        }
+
+        // EFECTO: Ejecuta instrucción ddiv
+        // REQUIERE: vector de registros, vector de registro de instrucciones
+        // MODIFICA: 
+        public void ddiv(int[] R, int[] IR)
+        {
+            R[IR[3]] = R[IR[1]] / R[IR[2]];
+        }
+
+        // EFECTO: Ejecuta instrucción fin
+        // REQUIERE: vector de registros, vector de registro de instrucciones
+        // MODIFICA: 
+        public void fin(int[,] contexto, int[] R)
+        {
+            
+        }
+
+
+        public void finalizar(string[] hilosP0, string[] hilosP1)
+        {
+            //Imprimo memorias
+            Console.WriteLine("Memoria compartida P0");
+            printMemoria(memCompartidaP0);
+            Console.WriteLine("\n");
+            Console.WriteLine("Memoria compartida P1");
+            printMemoria(memCompartidaP1);
+            Console.WriteLine("\n");
+            //Imprimo cache de datos
+            Console.WriteLine("Cache N0");
+            printCache(cacheDatosN0);
+            Console.WriteLine("Cache N1");
+            printCache(cacheDatosN1);
+            Console.WriteLine("Cache N2");
+            printCache(cacheDatosN2);
+            //Imprimo cache de instrucciones
+            Console.WriteLine("Cache Instrucciones N0");
+            printCache(cacheInstruccionesN0);
+            Console.WriteLine("Cache Instrucciones N1");
+            printCache(cacheInstruccionesN1);
+            Console.WriteLine("Cache Instrucciones N2");
+            printCache(cacheInstruccionesN2);
+
+            Console.WriteLine("\n");
+            for(int i = 0; i< hilosP0.Length; ++i)
+            {
+                string[] aux = hilosP0[i].Split('\\');
+                string nombre = aux[aux.Length - 1];
+                Console.WriteLine("Contenido del hilillo " + nombre);
+                Console.WriteLine("Registros:");
+                for(int j = 1; j<33; ++j)
+                {
+                    Console.Write(contextoP0[i, j]);
+                    Console.Write(" ");
+                }
+                Console.Write("\n");
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i, 33]);
+                Console.WriteLine("Nombre del procesador donde se ejecuto: P0");
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i, 34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i, 35]);
+                Console.Write("\n");
+            }
+
+            Console.Write("");
+            for (int i = 0; i < hilosP1.Length; ++i)
+            {
+                string[] aux = hilosP1[i].Split('\\');
+                string nombre = aux[aux.Length - 1];
+                Console.WriteLine("Contenido del hilillo " + nombre);
+                Console.WriteLine("Registros:");
+                for (int j = 1; j < 33; ++j)
+                {
+                    Console.Write(contextoP1[i, j]);
+                    Console.Write(" ");
+                }
+                Console.Write("\n");
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i, 33]);
+                Console.WriteLine("Nombre del procesador donde se ejecuto: P1");
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i, 34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i, 35]);
                 Console.Write("\n");
             }
         }
