@@ -10,38 +10,41 @@ namespace MultiProcessorSimulator
 {
     class Simulador
     {
-        private int[] memCompartidaP0; // size = 64
-        private int[] memCompartidaP1; // size = 32
-        private int[] memInstruccionesP0; // size = 384
-        private int[] memInstruccionesP1; // size = 256
+        public static int[] memCompartidaP0; // size = 64
+        public static int[] memCompartidaP1; // size = 32
+        public static int[] memInstruccionesP0; // size = 384
+        public static int[] memInstruccionesP1; // size = 256
 
-        private int[,] cacheDatosN0;// 4x6
-        private int[,] cacheDatosN1;// 4x6
-        private int[,] cacheDatosN2;// 4x6
+        public static int[,] cacheDatosN0;// 4x6
+        public static int[,] cacheDatosN1;// 4x6
+        public static int[,] cacheDatosN2;// 4x6
 
-        private int[,] cacheInstruccionesN0;// 4x17
-        private int[,] cacheInstruccionesN1;// 4x17
-        private int[,] cacheInstruccionesN2;// 4x17
+        public static int[,] cacheInstruccionesN0;// 4x17
+        public static int[,] cacheInstruccionesN1;// 4x17
+        public static int[,] cacheInstruccionesN2;// 4x17
 
-        private int[,] directorioP0;//16x4
-        private int[,] directorioP1;//8x4
-        private int[,] contextoP0; //7x36
-        private int[,] contextoP1; //7x36
+        public static int[,] directorioP0;//16x4
+        public static int[,] directorioP1;//8x4
+        public static int[][] contextoP0; //7x36 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
+        public static int[][] contextoP1; //7x36 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
 
-        private int[] registrosN0;// size = 32
-        private int[] registrosN1;// size = 32
-        private int[] registrosN2;// size = 32
-        private int[] rInstruccionN0;// size = 4
-        private int[] rInstruccionN1;// size = 4
-        private int[] rInstruccionN2;// size = 4
+        public static int[] registrosN0;// size = 32
+        public static int[] registrosN1;// size = 32
+        public static int[] registrosN2;// size = 32
+        public static int[] rInstruccionN0;// size = 4
+        public static int[] rInstruccionN1;// size = 4
+        public static int[] rInstruccionN2;// size = 4
 
-        Barrier barrera;
+        public static int quantum;
+        public static Barrier barrera;
+        private int cicloActual;
 
         public void correr()
         {
             string [] hilosP0 = solicitarHilos(0);
             string[] hilosP1 = solicitarHilos(1);
-            int quantum = solicitarQuantum();
+            quantum = solicitarQuantum();
+            cicloActual = 0;
             //Inicializo estructuras
             inicializar();
             //Lleno memoria de instrucciones
@@ -56,22 +59,32 @@ namespace MultiProcessorSimulator
         
             printContexto();
 
-            barrera = new Barrier(4); //Inicializacion de la barrera
+            barrera = new Barrier(4);                                           //Inicializacion de la barrera
 
-            Thread nucleo0 = new Thread(new ThreadStart(logicaNucleo));
-            nucleo0.Start();
+            //Llamado de los nucleos
+            Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0);
+            Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
+            nucleo0Thread.Start();
+            
+            Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
+            Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
+            nucleo1Thread.Start();
+            
+            Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
+            Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
+            nucleo2Thread.Start();
 
-            Thread nucleo1 = new Thread(new ThreadStart(logicaNucleo));
-            nucleo1.Start();
-
-            Thread nucleo2 = new Thread(new ThreadStart(logicaNucleo));
-            nucleo2.Start();
-
+            //Sincronizador de ciclos
+            while (cicloActual < quantum) {
+                barrera.SignalAndWait();
+                cicloActual++;
+            }
             barrera.SignalAndWait(); // Barrera de finalización
 
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
+
             int modo = Int32.Parse(Console.ReadLine());
             
             //Asignar a cada procesador sus hilos correpondientes
@@ -106,8 +119,11 @@ namespace MultiProcessorSimulator
             directorioP1 = new int[8, 4];//8x4
 
             //Inicializo directorios
-            contextoP0 = new int[7,36];
-            contextoP1 = new int[7, 36];
+            contextoP0 = new int[7][];
+            contextoP1 = new int[7][];
+            for (int i = 0; i < contextoP0.Length; i++) contextoP0[i] = new int[36];
+            for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[36];
+
         }
 
         public string[] solicitarHilos(int proc)
@@ -178,14 +194,16 @@ namespace MultiProcessorSimulator
         // EFECTO: Guarda las instrucciones en la memoria y crea los contextos iniciales
         // REQUIERE: contexto destino, memoria donde se guardaran los hilillos, los hilillos fuente
         // MODIFICA: 
-        public void guardarInstrucciones(int [,] contexto, int[] mem, string[] hilillos)
+        public void guardarInstrucciones(int [][] contexto, int[] mem, string[] hilillos)
         {
 
             string[] lines;
             int bloque = 0;
             for (int i = 0; i< hilillos.Length; ++i)
             {
-                contexto[i,0] = bloque;
+                contexto[i][0] = bloque;
+                contexto[i][33] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
+                contexto[i][34] = -1; // Indica que estan en desuso
                 lines = System.IO.File.ReadAllLines(hilillos[i]);
                 foreach (string line in lines)
                 {
@@ -206,11 +224,6 @@ namespace MultiProcessorSimulator
                 }
             }
             
-        }
-
-        public void logicaNucleo() {
-            Console.WriteLine("Impreso desdel el nucleo 1");
-            barrera.SignalAndWait();
         }
 
         public void printMemoria(int [] mem)
@@ -238,7 +251,7 @@ namespace MultiProcessorSimulator
             Console.Write("Contexto 0\n");
             for (int i = 0; i < 7; i++) {
                 for (int j = 0; j < 36; j++) {
-                    Console.Write(contextoP0[i,j] + " ");
+                    Console.Write(contextoP0[i][j] + " ");
                 }
                 Console.Write("\n");
             }
@@ -247,7 +260,7 @@ namespace MultiProcessorSimulator
             {
                 for (int j = 0; j < 36; j++)
                 {
-                    Console.Write(contextoP1[i, j] + " ");
+                    Console.Write(contextoP1[i][j] + " ");
                 }
                 Console.Write("\n");
             }
