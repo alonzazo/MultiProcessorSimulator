@@ -153,7 +153,6 @@ namespace MultiProcessorSimulator
                         flag = continuar;
                     }
                 }
-                Simulador.kill(numNucleo);
             } else {
                 bool flag = true;
                 while (flag)
