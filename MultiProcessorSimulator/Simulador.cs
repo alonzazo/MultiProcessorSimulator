@@ -82,14 +82,14 @@ namespace MultiProcessorSimulator
                 cicloActual++;
             }
             barrera.SignalAndWait(); // Barrera de finalización
-
+/*
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
 
-            int modo = Int32.Parse(Console.ReadLine());
+            int modo = Int32.Parse(Console.ReadLine());*/
 
-            //Asignar a cada procesador sus hilos correpondientes
+
 
             //finalizar
             finalizar(hilosP0, hilosP1);
@@ -333,46 +333,6 @@ namespace MultiProcessorSimulator
             }
         }
 
-        // EFECTO: Ejecuta instrucción daddi
-        // REQUIERE: vector de registros, vector de registro de instrucciones
-        // MODIFICA: 
-        public void daddi(int[] R, int[] IR)
-        {
-            R[IR[2]] = R[IR[1]] + IR[3];
-        }
-
-        // EFECTO: Ejecuta instrucción dadd
-        // REQUIERE: vector de registros, vector de registro de instrucciones
-        // MODIFICA: 
-        public void dadd(int[] R, int[] IR)
-        {
-            R[IR[3]] = R[IR[1]] + R[IR[2]];
-        }
-
-        // EFECTO: Ejecuta instrucción dmul
-        // REQUIERE: vector de registros, vector de registro de instrucciones
-        // MODIFICA: 
-        public void dmul(int[] R, int[] IR)
-        {
-            R[IR[3]] = R[IR[1]] * R[IR[2]];
-        }
-
-        // EFECTO: Ejecuta instrucción ddiv
-        // REQUIERE: vector de registros, vector de registro de instrucciones
-        // MODIFICA: 
-        public void ddiv(int[] R, int[] IR)
-        {
-            R[IR[3]] = R[IR[1]] / R[IR[2]];
-        }
-
-        // EFECTO: Ejecuta instrucción fin
-        // REQUIERE: vector de registros, vector de registro de instrucciones
-        // MODIFICA: 
-        public void fin(int[,] contexto, int[] R)
-        {
-            
-        }
-
 
         public void finalizar(string[] hilosP0, string[] hilosP1)
         {
@@ -407,14 +367,14 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for(int j = 1; j<33; ++j)
                 {
-                    Console.Write(contextoP0[i, j]);
+                    Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P0");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i][35]);
                 Console.Write("\n");
             }
 
@@ -427,14 +387,14 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
-                    Console.Write(contextoP1[i, j]);
+                    Console.Write(contextoP1[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P1");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i][35]);
                 Console.Write("\n");
             }
         }

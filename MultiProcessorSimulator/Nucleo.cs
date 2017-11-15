@@ -153,6 +153,7 @@ namespace MultiProcessorSimulator
                         flag = continuar;
                     }
                 }
+                Simulador.kill(numNucleo);
             } else {
                 bool flag = true;
                 while (flag)
@@ -283,6 +284,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDADD() {
             logExecution += "Instrucción DADD ejecutada.\n";
+            registros[IR[3]] = registros[IR[1]] + registros[IR[2]];
             //Console.WriteLine("Instrucción DADD ejecutada.");
 
         }
@@ -293,6 +295,7 @@ namespace MultiProcessorSimulator
         private void instruccionDADDI()
         {
             logExecution += "Instrucción DADDI ejecutada.\n";
+            registros[IR[2]] = registros[IR[1]] + IR[3];
             //Console.WriteLine("Instrucción DADDI ejecutada.");
         }
 
@@ -311,6 +314,7 @@ namespace MultiProcessorSimulator
         private void instruccionDMUL()
         {
             logExecution += "Instrucción DMUL ejecutada.\n";
+            registros[IR[3]] = registros[IR[1]] * registros[IR[2]];
             //Console.WriteLine("Instrucción DMUL ejecutada.");
         }
 
@@ -320,6 +324,7 @@ namespace MultiProcessorSimulator
         private void instruccionDDIV()
         {
             logExecution += "Instrucción DDIV ejecutada.\n";
+            registros[IR[3]] = registros[IR[1]] / registros[IR[2]];
             //Console.WriteLine("Instrucción DDIV ejecutada.");
         }
 
