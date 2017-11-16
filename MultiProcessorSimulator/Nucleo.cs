@@ -40,6 +40,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         public void run() {
             if (numProc == 0) {
+
                 lock (Simulador.contextoP0)
                 {
                     Simulador.contextoP0[contextoActual][36] = cicloActual;
@@ -201,11 +202,16 @@ namespace MultiProcessorSimulator
                     }
                     else {
                         lock (Simulador.contextoP0) {
-                            Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
-                            for (int i = 0; i < registros.Length; i++) {                        //Salvamos los registros en el contexto
-                                Simulador.contextoP0[contextoActual][i + 1] = registros[i];
+                            if (Simulador.contextoP0[contextoActual][33] == -1 )
+                            {
+                                Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
+                                for (int i = 0; i < registros.Length; i++)
+                                {                        //Salvamos los registros en el contexto
+                                    Simulador.contextoP0[contextoActual][i + 1] = registros[i];
+                                }
+                                Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
+
                             }
-                            Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
 
                             //Buscamos un contexto en desuso
                             for (int i = 0; i < Simulador.contextoP0.Length; i++) {
@@ -396,12 +402,16 @@ namespace MultiProcessorSimulator
                     else {
                         lock (Simulador.contextoP1)
                         {
-                            Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
-                            for (int i = 0; i < registros.Length; i++)
-                            {                        //Salvamos los registros en el contexto
-                                Simulador.contextoP1[contextoActual][i + 1] = registros[i];
+                            if(Simulador.contextoP1[contextoActual][33] == -1)
+                            {
+                                Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
+                                for (int i = 0; i < registros.Length; i++)
+                                {                        //Salvamos los registros en el contexto
+                                    Simulador.contextoP1[contextoActual][i + 1] = registros[i];
+                                }
+                                Simulador.contextoP1[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
+
                             }
-                            Simulador.contextoP1[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
 
 
                             //Buscamos un contexto en desuso
