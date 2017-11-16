@@ -296,6 +296,7 @@ namespace MultiProcessorSimulator
                         }
                         */
                         //Aumentamos 4 al PC
+                        
                         PC += 4;
 
                         //Decode del IR
@@ -460,7 +461,7 @@ namespace MultiProcessorSimulator
         /// Ejecuta la instrucción DADD
         /// </summary>
         private void instruccionDADD() {
-            logExecution += "Instrucción DADD ejecutada.\n";
+            logExecution += "Instrucción DADD ejecutada en el contexto " + contextoActual + "\n";
             registros[IR[3]] = registros[IR[1]] + registros[IR[2]];
             //Console.WriteLine("Instrucción DADD ejecutada.");
 
@@ -471,7 +472,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDADDI()
         {
-            logExecution += "Instrucción DADDI ejecutada.\n";
+            logExecution += "Instrucción DADDI ejecutada en el contexto " + contextoActual + "\n";
             registros[IR[2]] = registros[IR[1]] + IR[3];
             //Console.WriteLine("Instrucción DADDI ejecutada.");
         }
@@ -492,7 +493,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDMUL()
         {
-            logExecution += "Instrucción DMUL ejecutada.\n";
+            logExecution += "Instrucción DMUL ejecutada en el contexto " + contextoActual + "\n";
             registros[IR[3]] = registros[IR[1]] * registros[IR[2]];
             //Console.WriteLine("Instrucción DMUL ejecutada.");
         }
@@ -502,7 +503,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDDIV()
         {
-            logExecution += "Instrucción DDIV ejecutada.\n";
+            logExecution += "Instrucción DDIV ejecutada en el contexto " + contextoActual + "\n";
             registros[IR[3]] = registros[IR[1]] / registros[IR[2]];
             //Console.WriteLine("Instrucción DDIV ejecutada.");
         }
@@ -540,7 +541,7 @@ namespace MultiProcessorSimulator
         private void instruccionJAL()
         {
             registros[31] = PC;
-            PC += IR[3] * 4;
+            PC += IR[3];
             logExecution += "Instrucción JAL ejecutada en el contexto " + contextoActual + "\n";
             
             //Console.WriteLine("Instrucción JAL ejecutada en el contexto ");
