@@ -46,7 +46,7 @@ namespace MultiProcessorSimulator
                 int numInstruccion;
                 bool flag = true;
                 while (flag) {
-                    if (cicloActual == 0 || cicloActual % Simulador.quantum != 0)
+                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP0[contextoActual][33] == -1)
                     {
                         //Solicitamos bus de memoria
                         /*lock (Simulador.memInstruccionesP0)
@@ -257,7 +257,7 @@ namespace MultiProcessorSimulator
                 int numInstruccion;
                 while (flag)
                 {
-                    if (cicloActual == 0 || cicloActual % Simulador.quantum != 0)
+                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP1[contextoActual][33] == -1)
                     {
                         lock (Simulador.cacheInstruccionesN2)
                         {
