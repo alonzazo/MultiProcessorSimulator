@@ -69,7 +69,7 @@ namespace MultiProcessorSimulator
                                 numBloque = obtenerNumBloqueInstruccion(numProc);
                                 posCache = obtenerPosCache(numBloque);
                                 numInstruccion = obtenerNumInstruccionBloque();
-                                if (!instruccionEnCache(numBloque, posCache, 0))
+                                if (!instruccionEnCache(numBloque, posCache, numNucleo))
                                 {
 
                                     lock (Simulador.memInstruccionesP0)
@@ -77,7 +77,7 @@ namespace MultiProcessorSimulator
                                         insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                     }
                                 }
-                                insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                //insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 IR[0] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 1];
                                 IR[1] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 2];
                                 IR[2] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 3];
@@ -91,7 +91,7 @@ namespace MultiProcessorSimulator
                                 numBloque = obtenerNumBloqueInstruccion(numProc);
                                 posCache = obtenerPosCache(numBloque);
                                 numInstruccion = obtenerNumInstruccionBloque();
-                                if (!instruccionEnCache(numBloque, posCache, 0))
+                                if (!instruccionEnCache(numBloque, posCache, numNucleo))
                                 {
 
                                     lock (Simulador.memInstruccionesP0)
@@ -99,7 +99,7 @@ namespace MultiProcessorSimulator
                                         insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                     }
                                 }
-                                insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                //insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 IR[0] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 1];
                                 IR[1] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 2];
                                 IR[2] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 3];
@@ -280,7 +280,7 @@ namespace MultiProcessorSimulator
                             numBloque = obtenerNumBloqueInstruccion(numProc);
                             posCache = obtenerPosCache(numBloque);
                             numInstruccion = obtenerNumInstruccionBloque();
-                            if (!instruccionEnCache(numBloque, posCache, 0))
+                            if (!instruccionEnCache(numBloque, posCache, numNucleo))
                             {
 
                                 lock (Simulador.memInstruccionesP1)
@@ -288,7 +288,7 @@ namespace MultiProcessorSimulator
                                     insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 }
                             }
-                            insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                            //insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                             IR[0] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 1];
                             IR[1] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 2];
                             IR[2] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 3];
