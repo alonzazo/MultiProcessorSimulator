@@ -409,7 +409,7 @@ namespace MultiProcessorSimulator
                 string nombre = aux[aux.Length - 1];
                 Console.WriteLine("Contenido del hilillo " + nombre);
                 Console.WriteLine("Registros:");
-                for(int j = 1; j<33; ++j)
+                for (int j = 1; j < 33; ++j)
                 {
                     Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
