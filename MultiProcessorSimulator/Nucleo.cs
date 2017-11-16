@@ -39,8 +39,12 @@ namespace MultiProcessorSimulator
         /// Inicia la corrida de la lógica de un núcleo.
         /// </summary>
         public void run() {
-            
             if (numProc == 0) {
+                lock (Simulador.contextoP0)
+                {
+                    Simulador.contextoP0[contextoActual][36] = cicloActual;
+                    logExecution += "Reloj de inicio guardado en el contexto" + contextoActual + "del P0" + "\n";
+                }
                 int numBloque;
                 int posCache;
                 int numInstruccion;
@@ -251,6 +255,10 @@ namespace MultiProcessorSimulator
                     }
                 }
             } else {
+                lock (Simulador.contextoP1)
+                {
+                    Simulador.contextoP1[contextoActual][36] = cicloActual;
+                }
                 bool flag = true;
                 int numBloque;
                 int posCache;
@@ -565,6 +573,7 @@ namespace MultiProcessorSimulator
             {
                 lock (Simulador.contextoP0) {
                     Simulador.contextoP0[contextoActual][33] = cicloActual;
+                    Simulador.contextoP0[contextoActual][37] = cicloActual;
                 }
                 
             }
@@ -572,6 +581,7 @@ namespace MultiProcessorSimulator
                 lock (Simulador.contextoP1)
                 {
                     Simulador.contextoP1[contextoActual][33] = cicloActual;
+                    Simulador.contextoP1[contextoActual][37] = cicloActual;
                 }
             }
 

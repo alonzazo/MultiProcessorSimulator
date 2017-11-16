@@ -25,8 +25,8 @@ namespace MultiProcessorSimulator
 
         public static int[,] directorioP0;//16x4
         public static int[,] directorioP1;//8x4
-        public static int[][] contextoP0; //7x36 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
-        public static int[][] contextoP1; //7x36 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
+        public static int[][] contextoP0; //7x38 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
+        public static int[][] contextoP1; //7x38 FORMATO:  PC|R0|R1|R2|R3|R4|R5|R6|R7|R8|R9|R10|R11|R12|R13|R14|R15|R16|R17|R18|R19|R20|R21|R22|R23|R24|R25|R26|R27|R28|R29|R30|R31|CicloFinal|Usado|Espacio libre
 
         public static int[] registrosN0;// size = 32
         public static int[] registrosN1;// size = 32
@@ -133,8 +133,8 @@ namespace MultiProcessorSimulator
             //Inicializo directorios
             contextoP0 = new int[7][];
             contextoP1 = new int[7][];
-            for (int i = 0; i < contextoP0.Length; i++) contextoP0[i] = new int[36];
-            for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[36];
+            for (int i = 0; i < contextoP0.Length; i++) contextoP0[i] = new int[38];
+            for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[38];
 
         }
 
@@ -370,8 +370,8 @@ namespace MultiProcessorSimulator
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P0");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i][34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i][35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i][36]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i][37]);
                 Console.Write("\n");
             }
 
@@ -390,8 +390,8 @@ namespace MultiProcessorSimulator
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P1");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i][34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i][35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i][36]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i][37]);
                 Console.Write("\n");
             }
         }
