@@ -41,20 +41,64 @@ namespace MultiProcessorSimulator
         public void run() {
             
             if (numProc == 0) {
+                int numBloque;
+                int posCache;
+                int numInstruccion;
                 bool flag = true;
                 while (flag) {
                     if (cicloActual < Simulador.quantum)
                     {
                         //Solicitamos bus de memoria
-                        lock (Simulador.memInstruccionesP0)
+                        /*lock (Simulador.memInstruccionesP0)
                         {
                             //Hacemos fetch de la instrucción
                             IR[0] = Simulador.memInstruccionesP0[PC];
                             IR[1] = Simulador.memInstruccionesP0[PC + 1];
                             IR[2] = Simulador.memInstruccionesP0[PC + 2];
                             IR[3] = Simulador.memInstruccionesP0[PC + 3];
-                        }
+                        }*/
+                        if(numNucleo == 0)
+                        {
+                            lock (Simulador.cacheInstruccionesN0)
+                            {
+                                numBloque = obtenerNumBloqueInstruccion(numProc);
+                                posCache = obtenerPosCache(numBloque);
+                                numInstruccion = obtenerNumInstruccionBloque();
+                                if (!instruccionEnCache(numBloque, posCache, 0))
+                                {
 
+                                    lock (Simulador.memInstruccionesP0)
+                                    {
+                                        insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                    }
+                                }
+                                IR[0] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 1];
+                                IR[1] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 2];
+                                IR[2] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 3];
+                                IR[3] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 4];
+                            }
+                        }
+                        else
+                        {
+                            lock (Simulador.cacheInstruccionesN1)
+                            {
+                                numBloque = obtenerNumBloqueInstruccion(numProc);
+                                posCache = obtenerPosCache(numBloque);
+                                numInstruccion = obtenerNumInstruccionBloque();
+                                if (!instruccionEnCache(numBloque, posCache, 0))
+                                {
+
+                                    lock (Simulador.memInstruccionesP0)
+                                    {
+                                        insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                    }
+                                }
+                                IR[0] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 1];
+                                IR[1] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 2];
+                                IR[2] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 3];
+                                IR[3] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 4];
+                            }
+                        }
                         //Aumentamos 4 al PC
                         PC += 4;
 
@@ -155,12 +199,33 @@ namespace MultiProcessorSimulator
                 }
             } else {
                 bool flag = true;
+                int numBloque;
+                int posCache;
+                int numInstruccion;
                 while (flag)
                 {
                     if (cicloActual < Simulador.quantum)
                     {
+                        lock (Simulador.cacheInstruccionesN2)
+                        {
+                            numBloque = obtenerNumBloqueInstruccion(numProc);
+                            posCache = obtenerPosCache(numBloque);
+                            numInstruccion = obtenerNumInstruccionBloque();
+                            if (!instruccionEnCache(numBloque, posCache, 0))
+                            {
+
+                                lock (Simulador.memInstruccionesP1)
+                                {
+                                    insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                }
+                            }
+                            IR[0] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 1];
+                            IR[1] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 2];
+                            IR[2] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 3];
+                            IR[3] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 4];
+                        }
                         //Solicitamos bus de memoria
-                        lock (Simulador.memInstruccionesP0)
+                        /*lock (Simulador.memInstruccionesP1)
                         {
                             //Hacemos fetch de la instrucción
                             IR[0] = Simulador.memInstruccionesP1[PC];
@@ -168,7 +233,7 @@ namespace MultiProcessorSimulator
                             IR[2] = Simulador.memInstruccionesP1[PC + 2];
                             IR[3] = Simulador.memInstruccionesP1[PC + 3];
                         }
-
+                        */
                         //Aumentamos 4 al PC
                         PC += 4;
 
@@ -329,6 +394,10 @@ namespace MultiProcessorSimulator
         private void instruccionBEQZ()
         {
             logExecution += "Instrucción BEQZ ejecutada.\n";
+            if (registros[IR[1]] == 0)
+            {
+                PC += IR[3] * 4;
+            }
             //Console.WriteLine("Instrucción BEQZ ejecutada.");
         }
 
@@ -422,5 +491,96 @@ namespace MultiProcessorSimulator
             return contextoActual;
         }
 
+        public int obtenerNumBloque(){
+            int numBloque = (IR[1] + IR[3]) / 16;
+            return numBloque;
+        }
+
+        public int obtenerNumPalabra()
+        {
+            int numPalabra = ((IR[1] + IR[3]) % 16) / 4;
+            return numPalabra;
+        }
+
+        public int obtenerPosCache(int numBloque)
+        {
+            int posCache = numBloque % 4;
+            return posCache;
+        }
+
+        public int obtenerNumBloqueInstruccion(int numProcesador)
+        {
+            int numBloque;
+            if (numProcesador == 0) 
+                numBloque = (PC / 16)+16;
+            else
+                numBloque = (PC / 16) + 8;
+            return numBloque;
+        }
+
+        public int obtenerNumInstruccionBloque()
+        {
+            int numPalabra = (PC % 16) / 4;
+            return numPalabra;
+        }
+
+        public bool instruccionEnCache(int numBloque, int posCache,int numNucleo)
+        {
+            bool esta = false;
+            switch (numNucleo)
+            {
+                case 0:
+                    if (Simulador.cacheInstruccionesN0[posCache,0] == numBloque)
+                        esta = true;
+                    else
+                        esta = false;
+                    break;
+                case 1:
+                    if (Simulador.cacheInstruccionesN1[posCache,0] == numBloque)
+                        esta = true;
+                    else
+                        esta = false;
+                    break;
+                case 2:
+                    if (Simulador.cacheInstruccionesN2[posCache,0] == numBloque)
+                        esta = true;
+                    else
+                        esta = false;
+                    break;
+
+            }
+            return esta;
+        }
+
+        public void insertarBloqueCacheInstrucciones(int numBloque,int posCache, int numNucleo)
+        {
+            switch (numNucleo)
+            {
+                case 0:
+                    Simulador.cacheInstruccionesN0[posCache, 0] = numBloque;
+                    for(int i = 1; i < 17; i++)
+                    {
+                        //Console.WriteLine(numNucleo + " " + Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))] + "\n\n");
+                        Simulador.cacheInstruccionesN0[posCache, i] = Simulador.memInstruccionesP0[((numBloque-16)*16 + (i-1))];
+                    }
+                    break;
+                case 1:
+                    Simulador.cacheInstruccionesN1[posCache, 0] = numBloque;
+                    for (int i = 1; i < 17; i++)
+                    {
+                        //Console.WriteLine(numNucleo + " " + Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))] + "\n\n");
+                        Simulador.cacheInstruccionesN1[posCache, i] = Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))];
+                    }
+                    break;
+                case 2:
+                    Simulador.cacheInstruccionesN2[posCache, 0] = numBloque;
+                    for (int i = 1; i < 17; i++)
+                    {
+                        //Console.WriteLine(numNucleo + " " + Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))] + "\n\n");
+                        Simulador.cacheInstruccionesN2[posCache, i] = Simulador.memInstruccionesP1[((numBloque - 8) * 16 + (i - 1))];
+                    }
+                    break;
+            }
+        }
     }
 }

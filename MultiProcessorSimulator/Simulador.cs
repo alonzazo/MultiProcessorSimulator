@@ -405,16 +405,16 @@ namespace MultiProcessorSimulator
                 string nombre = aux[aux.Length - 1];
                 Console.WriteLine("Contenido del hilillo " + nombre);
                 Console.WriteLine("Registros:");
-                for(int j = 1; j<33; ++j)
+                for (int j = 1; j < 33; ++j)
                 {
-                    Console.Write(contextoP0[i, j]);
+                    Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P0");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i][35]);
                 Console.Write("\n");
             }
 
@@ -427,14 +427,14 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
-                    Console.Write(contextoP1[i, j]);
+                    Console.Write(contextoP1[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P1");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i][35]);
                 Console.Write("\n");
             }
         }
