@@ -574,6 +574,138 @@ namespace MultiProcessorSimulator
         private void instruccionLW()
         {
             logExecution += "Instrucción LW ejecutada en el contexto " + contextoActual + "\n";
+            int numeroBloque = obtenerNumBloque();
+            int numPalabra = obtenerNumPalabra();
+            int posCache = obtenerPosCache(numeroBloque);
+            bool terminado = false;
+            switch (numNucleo)
+            {
+                case 0:
+                    while (!terminado)
+                    {
+                        if (Monitor.TryEnter(Simulador.cacheDatosN0))
+                        {
+                            if (!bloqueEnCache(posCache, numeroBloque))
+                            {
+                                if(Simulador.cacheDatosN0[posCache,1] != 0)
+                                {
+                                    if(Simulador.cacheDatosN0[posCache, 1] == 2)
+                                    {
+                                        if(numDirectorio(numeroBloque) == 0)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.directorioP0))
+                                            {
+                                                cicloActual++;
+                                                if (Simulador.directorioP0[numeroBloque,0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)
+                                                {
+                                                    if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                                    {
+                                                        guardarBloqueEnCache(posCache, numeroBloque);
+                                                        cicloActual += 16;
+                                                        Monitor.Exit(Simulador.memCompartidaP0);
+                                                        Simulador.directorioP0[numeroBloque,1] = 1;
+                                                        Simulador.directorioP0[numeroBloque, 2] = 1;
+                                                        Monitor.Exit(Simulador.directorioP0);
+                                                        terminado = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        cicloActual++;
+                                                        Monitor.Exit(Simulador.directorioP0);
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        terminado = false;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    int cache = obtenerCacheEnModificado(0, numeroBloque);
+                                                    if(cache == 1)
+                                                    {
+                                                        if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                                        {
+                                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                                            {
+                                                                cicloActual++;
+                                                                guardarAMemoria(cache, 0, numeroBloque, posCache);
+                                                                cicloActual += 16;
+                                                                guardarBloqueEnCache(posCache, numeroBloque);
+                                                                cicloActual++;
+                                                                Monitor.Exit(Simulador.memCompartidaP0);
+                                                                Simulador.directorioP0[numeroBloque, 1] = 1;
+                                                                Simulador.cacheDatosN1[posCache, 1] = 1;
+                                                                Simulador.directorioP0[numeroBloque, 0] = 1;
+                                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                                Monitor.Exit(Simulador.directorioP0);
+                                                                terminado = true;
+                                                            }
+                                                            else
+                                                            {
+                                                                cicloActual++;
+                                                                Monitor.Exit(Simulador.directorioP0);
+                                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                                terminado = false;
+                                                            }
+                                                            Monitor.Exit(Simulador.cacheDatosN1);
+                                                        }
+                                                        else
+                                                        {
+                                                            cicloActual++;
+                                                            Monitor.Exit(Simulador.directorioP0);
+                                                            Monitor.Exit(Simulador.cacheDatosN0);
+                                                            terminado = false;
+                                                        }
+                                                    }
+                                                    else if(cache == 2)
+                                                    {
+
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                terminado = false;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Monitor.TryEnter(Simulador.directorioP1))
+                                            {
+                                                cicloActual += 5; 
+                                            }
+                                            else
+                                            {
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                terminado = false;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                }
+                            }
+                            if (terminado)
+                            {
+                                Simulador.registrosN0[IR[2]] = Simulador.cacheDatosN0[posCache, numPalabra + 2];
+                                Monitor.Exit(Simulador.cacheDatosN0);
+                            }
+                        }
+                        else
+                        {
+                            cicloActual++;
+                            Monitor.Exit(Simulador.cacheDatosN0);
+                        }
+                    }
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+            }
             //Console.WriteLine("Instrucción LW ejecutada en el contexto ");
         }
 
@@ -723,5 +855,154 @@ namespace MultiProcessorSimulator
                     break;
             }
         }
+
+        public bool bloqueEnCache(int posCache, int numBloque)
+        {
+            bool valido = false;
+            switch (numNucleo)
+            {
+                case 0:
+                    if (Simulador.cacheDatosN0[posCache, 0] == numBloque)
+                        if (Simulador.cacheDatosN0[posCache, 1] == 1 || Simulador.cacheDatosN0[posCache, 1] == 2)
+                            valido = true;
+                    break;
+                case 1:
+                    if (Simulador.cacheDatosN1[posCache, 0] == numBloque)
+                        if (Simulador.cacheDatosN1[posCache, 1] == 1 || Simulador.cacheDatosN1[posCache, 1] == 2)
+                            valido = true;
+                    break;
+                case 2:
+                    if (Simulador.cacheDatosN2[posCache, 0] == numBloque)
+                        if (Simulador.cacheDatosN2[posCache, 1] == 1 || Simulador.cacheDatosN2[posCache, 1] == 2)
+                            valido = true;
+                    break;
+            }
+            return valido;
+        }
+
+        public int numDirectorio(int numBloque)
+        {
+            int directorio = -1;
+            if (numBloque < 16)
+            {
+                directorio = 0;
+            }
+            else
+                directorio = 1;
+            return directorio;
+        }
+
+        public void guardarBloqueEnCache(int posCache, int numBloque)
+        {
+            switch (numNucleo)
+            {
+                case 0:
+                    Simulador.cacheDatosN0[posCache,0] = numBloque;
+                    Simulador.cacheDatosN0[posCache, 1] = 1;
+                    for(int i = 0; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.cacheDatosN0[posCache, i] =0;
+                    }
+                    break;
+                case 1:
+                    Simulador.cacheDatosN1[posCache, 0] = numBloque;
+                    Simulador.cacheDatosN1[posCache, 1] = 1;
+                    for (int i = 0; i < Simulador.cacheDatosN1.Length; i++)
+                    {
+                        Simulador.cacheDatosN1[posCache, i] = 0;
+                    }
+                    break;
+                case 2:
+                    Simulador.cacheDatosN2[posCache, 0] = numBloque;
+                    Simulador.cacheDatosN2[posCache, 1] = 1;
+                    for (int i = 0; i < Simulador.cacheDatosN2.Length; i++)
+                    {
+                        Simulador.cacheDatosN2[posCache, i] = 0;
+                    }
+                    break;
+            }
+        }
+
+        public int obtenerCacheEnModificado(int numDirectorio,int numBloque)
+        {
+            int cache = -1;
+            if(numDirectorio == 0)
+            {
+                for(int i = 2; i < Simulador.directorioP0.Length; i++)
+                {
+                    if(Simulador.directorioP0[numBloque,i] == 1)
+                    {
+                        cache = i - 2;
+                        i = Simulador.directorioP0.Length;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 2; i < Simulador.directorioP1.Length; i++)
+                {
+                    if (Simulador.directorioP1[numBloque, i] == 1)
+                    {
+                        cache = i - 2;
+                        i = Simulador.directorioP1.Length;
+                    }
+                }
+            }
+            return cache;
+        }
+
+        public void guardarAMemoria(int numCache, int numMemProcesador, int numBloque, int posCache)
+        {
+            if(numMemProcesador == 0)
+            {
+                if(numCache == 0)
+                {
+                    for(int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP0[numBloque*4+(i-2)] = Simulador.cacheDatosN0[posCache, i];
+                    }
+                }
+                else if(numCache == 1)
+                {
+                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP0[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN1[posCache, i];
+                    }
+                }
+                else
+                {
+                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP0[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN2[posCache, i];
+                    }
+                }
+            }
+            else
+            {
+                if (numCache == 0)
+                {
+                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN0[posCache, i];
+                    }
+                }
+                else if (numCache == 1)
+                {
+                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN1[posCache, i];
+                    }
+                }
+                else
+                {
+                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    {
+                        Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN2[posCache, i];
+                    }
+                }
+            }
+        }
     }
+
+
 }
