@@ -543,6 +543,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJR()
         {
+            PC = IR[1];
             logExecution += "Instrucción JR ejecutada en el contexto" + contextoActual + "\n";
             //Console.WriteLine("Instrucción JR ejecutada en el contexto ");
         }
