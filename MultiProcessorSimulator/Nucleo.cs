@@ -77,6 +77,7 @@ namespace MultiProcessorSimulator
                                         insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                     }
                                 }
+                                insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 IR[0] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 1];
                                 IR[1] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 2];
                                 IR[2] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 3];
@@ -98,6 +99,7 @@ namespace MultiProcessorSimulator
                                         insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                     }
                                 }
+                                insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 IR[0] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 1];
                                 IR[1] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 2];
                                 IR[2] = Simulador.cacheInstruccionesN1[posCache, numInstruccion * 4 + 3];
@@ -170,7 +172,7 @@ namespace MultiProcessorSimulator
                                     for (int i = 0; i < Simulador.contextoP0.Length; i++)
                                     {
                                         contextoActual = (contextoActual + 1) % 7;
-                                        if (Simulador.contextoP0[contextoActual][34] == -1 ||           //Está en desuso?
+                                        if (Simulador.contextoP0[contextoActual][34] == -1 &&           //Está en desuso?
                                             Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
                                         {
                                             break;
@@ -216,7 +218,7 @@ namespace MultiProcessorSimulator
                             //Buscamos un contexto en desuso
                             for (int i = 0; i < Simulador.contextoP0.Length; i++) {
                                 contextoActual = (contextoActual + 1) % 7;
-                                if (Simulador.contextoP0[contextoActual][34] == -1 ||           //Está en desuso?
+                                if (Simulador.contextoP0[contextoActual][34] == -1 &&           //Está en desuso?
                                     Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
                                 {
                                     break;
@@ -286,6 +288,7 @@ namespace MultiProcessorSimulator
                                     insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                                 }
                             }
+                            insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
                             IR[0] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 1];
                             IR[1] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 2];
                             IR[2] = Simulador.cacheInstruccionesN2[posCache, numInstruccion * 4 + 3];
@@ -562,7 +565,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJR()
         {
-            PC = IR[1];
+            PC = registros[IR[1]];
             logExecution += "Instrucción JR ejecutada en el contexto" + contextoActual + "\n";
             //Console.WriteLine("Instrucción JR ejecutada en el contexto ");
         }
