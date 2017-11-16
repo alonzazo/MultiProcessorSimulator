@@ -540,7 +540,7 @@ namespace MultiProcessorSimulator
         private void instruccionJAL()
         {
             registros[31] = PC;
-            PC += IR[3] * 4;
+            PC += IR[3];
             logExecution += "Instrucción JAL ejecutada en el contexto " + contextoActual + "\n";
             
             //Console.WriteLine("Instrucción JAL ejecutada en el contexto ");
