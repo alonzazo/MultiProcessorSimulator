@@ -51,48 +51,45 @@ namespace MultiProcessorSimulator
             //Lleno memoria de instrucciones
             guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0);
             guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1);
-            
-            //Imprimo memoria de instrucciones para verificar
-            Console.WriteLine("Memoria instrucciones P0");
-            printMemoria(memInstruccionesP0);
-                Console.Write("\n");
-            Console.WriteLine("Memoria instrucciones P1");
-            printMemoria(memInstruccionesP1);
-            Console.WriteLine("");
-            printContexto();
+
+            //Pregunto por modo de ejecucion
+            Console.WriteLine("\n");
+            Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
+            int modo = Int32.Parse(Console.ReadLine());
 
             barrera = new Barrier(4);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
+            contextoP0[0][34] = 0;
             Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0);
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
-            
+
+            contextoP0[1][34] = 0;
             Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
-            
+
+            contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
             nucleo2Thread.Start();
 
             //Sincronizador de ciclos
-            while (cicloActual < quantum) {
+            bool flag = true;
+            while (barrera.ParticipantCount > 1) {
                 barrera.SignalAndWait();
                 cicloActual++;
             }
             barrera.SignalAndWait(); // Barrera de finalización
-/*
-            //Pregunto por modo de ejecucion
-            Console.WriteLine("\n");
-            Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
 
-            int modo = Int32.Parse(Console.ReadLine());*/
+
 
 
 
             //finalizar
             finalizar(hilosP0, hilosP1);
+            Console.Read();
         }
 
         public void inicializar()
@@ -313,7 +310,7 @@ namespace MultiProcessorSimulator
             }
         }
 
-        public void printContexto()
+        public static void printContexto()
         {
             Console.Write("Contexto 0\n");
             for (int i = 0; i < 7; i++) {
@@ -365,7 +362,7 @@ namespace MultiProcessorSimulator
                 string nombre = aux[aux.Length - 1];
                 Console.WriteLine("Contenido del hilillo " + nombre);
                 Console.WriteLine("Registros:");
-                for(int j = 1; j<33; ++j)
+                for (int j = 1; j < 33; ++j)
                 {
                     Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
