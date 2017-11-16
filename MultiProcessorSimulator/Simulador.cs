@@ -64,20 +64,24 @@ namespace MultiProcessorSimulator
             barrera = new Barrier(4);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
+            contextoP0[0][34] = 0;
             Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0);
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
-            
+
+            contextoP0[1][34] = 0;
             Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
-            
+
+            contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
             nucleo2Thread.Start();
 
             //Sincronizador de ciclos
-            while (cicloActual < quantum) {
+            bool flag = true;
+            while (barrera.ParticipantCount > 1) {
                 barrera.SignalAndWait();
                 cicloActual++;
             }
@@ -313,7 +317,7 @@ namespace MultiProcessorSimulator
             }
         }
 
-        public void printContexto()
+        public static void printContexto()
         {
             Console.Write("Contexto 0\n");
             for (int i = 0; i < 7; i++) {
@@ -407,14 +411,14 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for(int j = 1; j<33; ++j)
                 {
-                    Console.Write(contextoP0[i, j]);
+                    Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P0");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP0[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP0[i][35]);
                 Console.Write("\n");
             }
 
@@ -427,14 +431,14 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
-                    Console.Write(contextoP1[i, j]);
+                    Console.Write(contextoP1[i][j]);
                     Console.Write(" ");
                 }
                 Console.Write("\n");
-                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i, 33]);
+                Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
                 Console.WriteLine("Nombre del procesador donde se ejecuto: P1");
-                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i, 34]);
-                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i, 35]);
+                Console.WriteLine("Valor del reloj al inicio de hilillo: " + contextoP1[i][34]);
+                Console.WriteLine("Valor del reloj al fin de hilillo: " + contextoP1[i][35]);
                 Console.Write("\n");
             }
         }

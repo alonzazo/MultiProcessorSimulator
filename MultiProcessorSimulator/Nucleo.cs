@@ -16,7 +16,7 @@ namespace MultiProcessorSimulator
         private int PC;
         private int[] IR;
         private int[] registros;
-        private Mutex mutex;
+        
         private String logExecution;
 
         public Nucleo(int numProc, int numNucleo, int[] contexto, int numContexto) {
@@ -43,7 +43,7 @@ namespace MultiProcessorSimulator
             if (numProc == 0) {
                 bool flag = true;
                 while (flag) {
-                    if (cicloActual < Simulador.quantum)
+                    if (cicloActual == 0 || cicloActual % Simulador.quantum != 0)
                     {
                         //Solicitamos bus de memoria
                         lock (Simulador.memInstruccionesP0)
@@ -107,14 +107,49 @@ namespace MultiProcessorSimulator
                                 break;
                             //Caso del FIN
                             case 63:
+                                instruccionFIN();
+                                lock (Simulador.contextoP0)
+                                {
+                                    Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
+                                    for (int i = 0; i < registros.Length; i++)
+                                    {                        //Salvamos los registros en el contexto
+                                        Simulador.contextoP0[contextoActual][i + 1] = registros[i];
+                                    }
+                                    Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
+
+                                    //Buscamos un contexto en desuso
+                                    for (int i = 0; i < Simulador.contextoP0.Length; i++)
+                                    {
+                                        contextoActual = (contextoActual + 1) % 7;
+                                        if (Simulador.contextoP0[contextoActual][34] == -1 ||           //Está en desuso?
+                                            Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    if (Simulador.contextoP0[contextoActual][33] == -1)
+                                    {               //Verificar si el contextoActual ya terminó
+                                                    //Cargamos el nuevo contexto
+                                        PC = Simulador.contextoP0[contextoActual][0];
+                                        for (int i = 1; i < 33; i++)
+                                        {
+                                            registros[i - 1] = Simulador.contextoP0[contextoActual][i];
+                                        }
+                                        Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
+                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+
+                                        Simulador.printContexto();
+                                    }
+                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                }
                                 break;
                             //Caso erroneo
                             default:
                                 throw new Exception("ERROR: Instruccion " + IR[0] + " no identificada.");
                         }
-                        Simulador.barrera.SignalAndWait();
-                        cicloActual++;
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                        //Simulador.barrera.SignalAndWait();
+                        //cicloActual++;
+                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     }
                     else {
                         lock (Simulador.contextoP0) {
@@ -125,20 +160,37 @@ namespace MultiProcessorSimulator
                             Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
 
                             //Buscamos un contexto en desuso
-                            contextoActual = (contextoActual + 1) % 7;
-                            while (Simulador.contextoP0[contextoActual][34] != -1 || Simulador.contextoP0[contextoActual][33] != -1) {
+                            for (int i = 0; i < Simulador.contextoP0.Length; i++) {
                                 contextoActual = (contextoActual + 1) % 7;
+                                if (Simulador.contextoP0[contextoActual][34] == -1 ||           //Está en desuso?
+                                    Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
+                                {
+                                    break;
+                                }
                             }
-                            //Cargamos el nuevo contexto
-                            PC = Simulador.contextoP0[contextoActual][0];
-                            for (int i = 1; i < 33; i++) {
-                                registros[i - 1] = Simulador.contextoP0[contextoActual][i];
+                            if (Simulador.contextoP0[contextoActual][33] == -1) {               //Verificar si el contextoActual ya terminó
+                                //Cargamos el nuevo contexto
+                                PC = Simulador.contextoP0[contextoActual][0];
+                                for (int i = 1; i < 33; i++)
+                                {
+                                    registros[i - 1] = Simulador.contextoP0[contextoActual][i];
+                                }
+                                Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
+                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+
+                                Simulador.printContexto();
                             }
-                            Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                            //cicloActual++;
+                            //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                         }
+                        
+
                     }
 
+
+                    Simulador.barrera.SignalAndWait();
+                    cicloActual++;
+                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
                     lock (Simulador.contextoP0)
                     {
@@ -148,6 +200,7 @@ namespace MultiProcessorSimulator
                             if (Simulador.contextoP0[i][33] == -1)
                             {
                                 continuar = true;
+                                break;
                             }
                         }
                         flag = continuar;
@@ -157,10 +210,10 @@ namespace MultiProcessorSimulator
                 bool flag = true;
                 while (flag)
                 {
-                    if (cicloActual < Simulador.quantum)
+                    if (cicloActual == 0 || cicloActual % Simulador.quantum != 0)
                     {
                         //Solicitamos bus de memoria
-                        lock (Simulador.memInstruccionesP0)
+                        lock (Simulador.memInstruccionesP1)
                         {
                             //Hacemos fetch de la instrucción
                             IR[0] = Simulador.memInstruccionesP1[PC];
@@ -222,15 +275,49 @@ namespace MultiProcessorSimulator
                             //Caso del FIN
                             case 63:
                                 instruccionFIN();
+                                lock (Simulador.contextoP1)
+                                {
+                                    Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
+                                    for (int i = 0; i < registros.Length; i++)
+                                    {                        //Salvamos los registros en el contexto
+                                        Simulador.contextoP1[contextoActual][i + 1] = registros[i];
+                                    }
+                                    Simulador.contextoP1[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
+
+
+                                    //Buscamos un contexto en desuso
+                                    for (int i = 0; i < Simulador.contextoP1.Length; i++)
+                                    {
+                                        contextoActual = (contextoActual + 1) % 7;
+                                        if (Simulador.contextoP1[contextoActual][34] == -1 ||           //Está en desuso?
+                                            Simulador.contextoP1[contextoActual][33] == -1)             //Ya terminó?
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    if (Simulador.contextoP1[contextoActual][33] == -1)                 //Verificar si el contextoActual ya terminó
+                                    {
+                                        //Cargamos el nuevo contexto
+                                        PC = Simulador.contextoP1[contextoActual][0];
+                                        for (int i = 1; i < 33; i++)
+                                        {
+                                            registros[i - 1] = Simulador.contextoP1[contextoActual][i];
+                                        }
+                                        Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
+                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+
+                                        Simulador.printContexto();
+                                    }
+                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                }
                                 break;
                             //Caso erroneo
                             default:
                                 throw new Exception("ERROR: Instruccion " + IR[0] + " no identificada.");
                         }
-                        Simulador.barrera.SignalAndWait();
-                        cicloActual++;
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
-
+                        //Simulador.barrera.SignalAndWait();
+                        //cicloActual++;
+                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     }
                 
                     else {
@@ -243,22 +330,38 @@ namespace MultiProcessorSimulator
                             }
                             Simulador.contextoP1[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
 
-                            //Buscamos un contexto en desuso y no terminado
-                            contextoActual = (contextoActual + 1) % 7;
-                            while (Simulador.contextoP1[contextoActual][34] != -1 || Simulador.contextoP1[contextoActual][33] != -1)
+
+                            //Buscamos un contexto en desuso
+                            for (int i = 0; i < Simulador.contextoP1.Length; i++)
                             {
                                 contextoActual = (contextoActual + 1) % 7;
+                                if (Simulador.contextoP1[contextoActual][34] == -1 ||           //Está en desuso?
+                                    Simulador.contextoP1[contextoActual][33] == -1)             //Ya terminó?
+                                {
+                                    break;
+                                }
                             }
-                            //Cargamos el nuevo contexto
-                            PC = Simulador.contextoP1[contextoActual][0];
-                            for (int i = 1; i < 33; i++)
-                            {
-                                registros[i - 1] = Simulador.contextoP1[contextoActual][i];
+                            if (Simulador.contextoP1[contextoActual][33] == -1)                 //Verificar si el contextoActual ya terminó
+                            {               
+                                //Cargamos el nuevo contexto
+                                PC = Simulador.contextoP1[contextoActual][0];
+                                for (int i = 1; i < 33; i++)
+                                {
+                                    registros[i - 1] = Simulador.contextoP1[contextoActual][i];
+                                }
+                                Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
+                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+
+                                Simulador.printContexto();
                             }
-                            Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
+                            //cicloActual++;
+                            //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                         }
-                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                     }
+
+                    Simulador.barrera.SignalAndWait();
+                    cicloActual++;
+                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
 
                     lock (Simulador.contextoP1) {
                         bool continuar = false;
@@ -267,12 +370,14 @@ namespace MultiProcessorSimulator
                             if (Simulador.contextoP1[i][33] == -1)
                             {
                                 continuar = true;
+                                break;
                             }
                         }
                         flag = continuar;
                     }
                 }
             }
+            Simulador.barrera.RemoveParticipant();
             printLogExecution();
             
 
@@ -282,8 +387,8 @@ namespace MultiProcessorSimulator
         /// Ejecuta la instrucción DADD
         /// </summary>
         private void instruccionDADD() {
-            logExecution += "Instrucción DADD ejecutada.\n";
-            //Console.WriteLine("Instrucción DADD ejecutada.");
+            logExecution += "Instrucción DADD ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción DADD ejecutada en el contexto ");
 
         }
 
@@ -292,8 +397,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDADDI()
         {
-            logExecution += "Instrucción DADDI ejecutada.\n";
-            //Console.WriteLine("Instrucción DADDI ejecutada.");
+            logExecution += "Instrucción DADDI ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción DADDI ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -301,8 +406,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDSUB()
         {
-            logExecution += "Instrucción DSUB ejecutada.\n";
-            //Console.WriteLine("Instrucción DSUB ejecutada.");
+            logExecution += "Instrucción DSUB ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción DSUB ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -310,8 +415,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDMUL()
         {
-            logExecution += "Instrucción DMUL ejecutada.\n";
-            //Console.WriteLine("Instrucción DMUL ejecutada.");
+            logExecution += "Instrucción DMUL ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción DMUL ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -319,8 +424,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDDIV()
         {
-            logExecution += "Instrucción DDIV ejecutada.\n";
-            //Console.WriteLine("Instrucción DDIV ejecutada.");
+            logExecution += "Instrucción DDIV ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción DDIV ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -328,8 +433,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionBEQZ()
         {
-            logExecution += "Instrucción BEQZ ejecutada.\n";
-            //Console.WriteLine("Instrucción BEQZ ejecutada.");
+            logExecution += "Instrucción BEQZ ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción BEQZ ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -337,8 +442,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionBNEZ()
         {
-            logExecution += "Instrucción BNEZ ejecutada.\n";
-            //Console.WriteLine("Instrucción BNEZ ejecutada.");
+            logExecution += "Instrucción BNEZ ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción BNEZ ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -346,8 +451,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJAL()
         {
-            logExecution += "Instrucción JAL ejecutada.\n";
-            //Console.WriteLine("Instrucción JAL ejecutada.");
+            logExecution += "Instrucción JAL ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción JAL ejecutada en el contexto ");
         }
 
 
@@ -356,8 +461,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJR()
         {
-            logExecution += "Instrucción JR ejecutada.\n";
-            //Console.WriteLine("Instrucción JR ejecutada.");
+            logExecution += "Instrucción JR ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción JR ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -365,8 +470,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionLW()
         {
-            logExecution += "Instrucción LW ejecutada.\n";
-            //Console.WriteLine("Instrucción LW ejecutada.");
+            logExecution += "Instrucción LW ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción LW ejecutada en el contexto ");
         }
 
         /// <summary>
@@ -374,8 +479,8 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionSW()
         {
-            logExecution += "Instrucción SW ejecutada.\n";
-            //Console.WriteLine("Instrucción SW ejecutada.");
+            logExecution += "Instrucción SW ejecutada en el contexto" + contextoActual + "\n";
+            //Console.WriteLine("Instrucción SW ejecutada en el contexto ");
         }
         /// <summary>
         /// Ejecuta la instrucción FIN
@@ -396,7 +501,7 @@ namespace MultiProcessorSimulator
                 }
             }
 
-            logExecution += "Instrucción FIN ejecutada.\n";
+            logExecution += "Instrucción FIN ejecutada en el contexto" + contextoActual + "\n";
             Console.WriteLine("Instrucción FIN ejecutada en contexto " + contextoActual);
         }
 
