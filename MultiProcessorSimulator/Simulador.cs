@@ -83,10 +83,6 @@ namespace MultiProcessorSimulator
             }
             barrera.SignalAndWait(); // Barrera de finalización
 
-
-
-
-
             //finalizar
             finalizar(hilosP0, hilosP1);
             Console.Read();

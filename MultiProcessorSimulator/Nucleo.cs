@@ -43,7 +43,7 @@ namespace MultiProcessorSimulator
                 lock (Simulador.contextoP0)
                 {
                     Simulador.contextoP0[contextoActual][36] = cicloActual;
-                    logExecution += "Reloj de inicio guardado en el contexto" + contextoActual + "del P0" + "\n";
+                    logExecution += "Reloj de inicio guardado en el contexto " + contextoActual + "del P0" + "\n";
                 }
                 int numBloque;
                 int posCache;
@@ -481,7 +481,9 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionDSUB()
         {
-            logExecution += "Instrucción DSUB ejecutada en el contexto" + contextoActual + "\n";
+
+            logExecution += "Instrucción DSUB ejecutada en el contexto " + contextoActual + "\n";
+            registros[IR[3]] = registros[IR[1]] - registros[IR[2]];
             //Console.WriteLine("Instrucción DSUB ejecutada en el contexto ");
         }
 
@@ -510,7 +512,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionBEQZ()
         {
-            logExecution += "Instrucción BEQZ ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción BEQZ ejecutada en el contexto " + contextoActual + "\n";
             //Console.WriteLine("Instrucción BEQZ ejecutada en el contexto ");
             
             if (registros[IR[1]] == 0)
@@ -524,7 +526,11 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionBNEZ()
         {
-            logExecution += "Instrucción BNEZ ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción BNEZ ejecutada en el contexto " + contextoActual + "\n";
+            if (registros[IR[1]] != 0)
+            {
+                PC += IR[3] * 4;
+            }
             //Console.WriteLine("Instrucción BNEZ ejecutada en el contexto ");
         }
 
@@ -533,7 +539,10 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJAL()
         {
-            logExecution += "Instrucción JAL ejecutada en el contexto" + contextoActual + "\n";
+            registros[31] = PC;
+            PC += IR[3] * 4;
+            logExecution += "Instrucción JAL ejecutada en el contexto " + contextoActual + "\n";
+            
             //Console.WriteLine("Instrucción JAL ejecutada en el contexto ");
         }
 
@@ -543,7 +552,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionJR()
         {
-            logExecution += "Instrucción JR ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción JR ejecutada en el contexto " + contextoActual + "\n";
             //Console.WriteLine("Instrucción JR ejecutada en el contexto ");
         }
 
@@ -552,7 +561,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionLW()
         {
-            logExecution += "Instrucción LW ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción LW ejecutada en el contexto " + contextoActual + "\n";
             //Console.WriteLine("Instrucción LW ejecutada en el contexto ");
         }
 
@@ -561,7 +570,7 @@ namespace MultiProcessorSimulator
         /// </summary>
         private void instruccionSW()
         {
-            logExecution += "Instrucción SW ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción SW ejecutada en el contexto " + contextoActual + "\n";
             //Console.WriteLine("Instrucción SW ejecutada en el contexto ");
         }
         /// <summary>
@@ -585,7 +594,7 @@ namespace MultiProcessorSimulator
                 }
             }
 
-            logExecution += "Instrucción FIN ejecutada en el contexto" + contextoActual + "\n";
+            logExecution += "Instrucción FIN ejecutada en el contexto " + contextoActual + "\n";
             Console.WriteLine("Instrucción FIN ejecutada en contexto " + contextoActual);
         }
 
