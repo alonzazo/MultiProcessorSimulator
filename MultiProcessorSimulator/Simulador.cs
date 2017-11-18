@@ -36,6 +36,7 @@ namespace MultiProcessorSimulator
         public static int[] rInstruccionN2;// size = 4
 
         public static int quantum;
+        public static int reloj = 0;
         public static Barrier barrera;
         private int cicloActual;
 
@@ -131,8 +132,8 @@ namespace MultiProcessorSimulator
             //Inicializo directorios
             contextoP0 = new int[7][];
             contextoP1 = new int[7][];
-            for (int i = 0; i < contextoP0.Length; i++) contextoP0[i] = new int[38];
-            for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[38];
+            for (int i = 0; i < contextoP0.Length; i++) contextoP0[i] = new int[39];
+            for (int i = 0; i < contextoP1.Length; i++) contextoP1[i] = new int[39];
 
         }
 
@@ -272,6 +273,7 @@ namespace MultiProcessorSimulator
                 contexto[i][0] = direccion;
                 contexto[i][33] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
                 contexto[i][34] = -1; // Indica que estan en desuso
+                contexto[i][37] = -1; //Indica que aun no ha iniciado el hilillo
                 lines = System.IO.File.ReadAllLines(hilillos[i]);
                 foreach (string line in lines)
                 {

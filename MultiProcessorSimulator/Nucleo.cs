@@ -41,11 +41,7 @@ namespace MultiProcessorSimulator
         public void run() {
             if (numProc == 0) {
 
-                lock (Simulador.contextoP0)
-                {
-                    Simulador.contextoP0[contextoActual][36] = cicloActual;
-                    logExecution += "Reloj de inicio guardado en el contexto " + contextoActual + "del P0" + "\n";
-                }
+               
                 int numBloque;
                 int posCache;
                 int numInstruccion;
@@ -62,7 +58,18 @@ namespace MultiProcessorSimulator
                             IR[2] = Simulador.memInstruccionesP0[PC + 2];
                             IR[3] = Simulador.memInstruccionesP0[PC + 3];
                         }*/
-                        if(numNucleo == 0)
+                        lock (Simulador.contextoP0)
+                        {
+                            if(Simulador.contextoP0[contextoActual][37] == -1)
+                            {
+                                Simulador.contextoP0[contextoActual][37] = 0;
+                                Simulador.contextoP0[contextoActual][36] = Simulador.reloj;
+                                logExecution += "Reloj de inicio guardado en el contexto " + contextoActual + "del P0" + "\n";
+                            }
+
+                        }
+
+                        if (numNucleo == 0)
                         {
                             lock (Simulador.cacheInstruccionesN0)
                             {
@@ -245,6 +252,7 @@ namespace MultiProcessorSimulator
 
 
                     Simulador.barrera.SignalAndWait();
+                    Simulador.reloj++;
                     cicloActual++;
                     Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
@@ -263,10 +271,6 @@ namespace MultiProcessorSimulator
                     }
                 }
             } else {
-                lock (Simulador.contextoP1)
-                {
-                    Simulador.contextoP1[contextoActual][36] = cicloActual;
-                }
                 bool flag = true;
                 int numBloque;
                 int posCache;
@@ -275,6 +279,16 @@ namespace MultiProcessorSimulator
                 {
                     if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP1[contextoActual][33] == -1)
                     {
+                        lock (Simulador.contextoP1)
+                        {
+                            if (Simulador.contextoP1[contextoActual][37] == -1)
+                            {
+                                Simulador.contextoP1[contextoActual][37] = 0;
+                                Simulador.contextoP1[contextoActual][36] = Simulador.reloj;
+                                logExecution += "Reloj de inicio guardado en el contexto " + contextoActual + "del P1" + "\n";
+                            }
+
+                        }
                         lock (Simulador.cacheInstruccionesN2)
                         {
                             numBloque = obtenerNumBloqueInstruccion(numProc);
@@ -446,6 +460,7 @@ namespace MultiProcessorSimulator
                     }
 
                     Simulador.barrera.SignalAndWait();
+                    Simulador.reloj++;
                     cicloActual++;
                     Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
 
@@ -608,13 +623,16 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio de la victima
                                             {
+                                                Simulador.reloj += 1;
                                                 cicloActual += 1;//Aumento ciclo por acceder a directorio local
                                                 Simulador.barrera.SignalAndWait();
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
+                                                Simulador.reloj += 16;
                                                 cicloActual += 16; //Aumento el ciclo por guardar en memoria compartida del procesador
                                                 for (int i = 0; i < 16; i++)
                                                     Simulador.barrera.SignalAndWait();
@@ -629,6 +647,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                                 terminado = false;
@@ -638,6 +657,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -646,14 +666,17 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria remota
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la victima
                                             {
+                                                Simulador.reloj += 5;
                                                 cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
                                                 for (int i = 0; i < 5; i++)
                                                     Simulador.barrera.SignalAndWait();
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
+                                                Simulador.reloj += 40;
                                                 cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del otro procesador
                                                 for (int i = 0; i < 40; i++)
                                                     Simulador.barrera.SignalAndWait();
@@ -666,6 +689,7 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                                 terminado = false;
@@ -677,6 +701,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -688,6 +713,7 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -703,6 +729,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -711,6 +738,7 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
+                                            Simulador.reloj += 5;
                                             cicloActual += 5;//Aumento el ciclo por bloquear memoria remota
                                             for (int i = 0; i < 5; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -727,6 +755,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -739,15 +768,18 @@ namespace MultiProcessorSimulator
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                 {
+                                    Simulador.reloj++;
                                     cicloActual++;//Aumento un ciclo por acceso a directorio local
                                     Simulador.barrera.SignalAndWait();
                                     if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                             guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
+                                            Simulador.reloj += 16;
                                             cicloActual += 16;//Aumento 16 por escribir desde memoria local
                                             for (int i = 0; i < 16; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -765,6 +797,7 @@ namespace MultiProcessorSimulator
                                             //Falta regresar a estado anterior
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                             Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -777,9 +810,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(1, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 16;
                                                     cicloActual += 16;//Aumento 16 por escribir desde memoria local
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -788,6 +823,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -804,6 +840,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -814,6 +851,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -824,9 +862,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 40;
                                                     cicloActual += 40;//Aumento 40 por escribir desde cache remoto
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -835,6 +875,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -850,6 +891,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -860,6 +902,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -871,6 +914,7 @@ namespace MultiProcessorSimulator
                                     terminado = false;
                                     //Falta regresar a estado anterior
                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                    Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
                                 }
@@ -879,6 +923,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                 {
+                                    Simulador.reloj += 5;
                                     cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
                                     for (int i = 0; i < 5; i++)
                                         Simulador.barrera.SignalAndWait();
@@ -886,9 +931,11 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                             guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
+                                            Simulador.reloj += 40;
                                             cicloActual += 40;//Aumento 16 por escribir desde memoria remota
                                             for (int i = 0; i < 40; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -906,6 +953,7 @@ namespace MultiProcessorSimulator
                                             //Falta regresar a estado anterior
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                             Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -918,9 +966,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj ++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(1, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 40;
                                                     cicloActual += 40;//Aumento 16 por escribir a memoria remota
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -929,6 +979,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP1[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -945,6 +996,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -955,6 +1007,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -965,9 +1018,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(2, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 16;
                                                     cicloActual += 16;//Aumento 16 por escribir desde cache remoto
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -976,6 +1031,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP1[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -991,6 +1047,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -1001,6 +1058,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -1012,6 +1070,7 @@ namespace MultiProcessorSimulator
                                     terminado = false;
                                     //Falta regresar a estado anterior
                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
+                                    Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
                                 }
@@ -1030,6 +1089,7 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
+                        Simulador.reloj++;
                         cicloActual++;
                         Simulador.barrera.SignalAndWait();
                     }
@@ -1052,13 +1112,16 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio de la victima
                                             {
+                                                Simulador.reloj += 1;
                                                 cicloActual += 1;//Aumento ciclo por acceder a directorio local
                                                 Simulador.barrera.SignalAndWait();
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
+                                                Simulador.reloj += 16;
                                                 cicloActual += 16; //Aumento el ciclo por guardar en memoria compartida del procesador
                                                 for (int i = 0; i < 16; i++)
                                                     Simulador.barrera.SignalAndWait();
@@ -1073,6 +1136,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                                 terminado = false;
@@ -1082,6 +1146,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1090,14 +1155,17 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria remota
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la victima
                                             {
+                                                Simulador.reloj += 5;
                                                 cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
                                                 for (int i = 0; i < 5; i++)
                                                     Simulador.barrera.SignalAndWait();
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
+                                                Simulador.reloj += 40;
                                                 cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del otro procesador
                                                 for (int i = 0; i < 40; i++)
                                                     Simulador.barrera.SignalAndWait();
@@ -1110,6 +1178,7 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                                 terminado = false;
@@ -1121,6 +1190,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1132,6 +1202,7 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -1147,6 +1218,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1155,6 +1227,7 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
+                                            Simulador.reloj += 5;
                                             cicloActual += 5;//Aumento el ciclo por bloquear memoria remota
                                             for (int i = 0; i < 5; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -1171,6 +1244,7 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1183,15 +1257,18 @@ namespace MultiProcessorSimulator
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                 {
+                                    Simulador.reloj++;
                                     cicloActual++;//Aumento un ciclo por acceso a directorio local
                                     Simulador.barrera.SignalAndWait();
                                     if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                             guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
+                                            Simulador.reloj += 16;
                                             cicloActual += 16;//Aumento 16 por escribir desde memoria local
                                             for (int i = 0; i < 16; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -1209,6 +1286,7 @@ namespace MultiProcessorSimulator
                                             //Falta regresar a estado anterior
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                             Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1221,9 +1299,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(0, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 16;
                                                     cicloActual += 16;//Aumento 16 por escribir desde memoria local
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -1232,6 +1312,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1248,6 +1329,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -1258,6 +1340,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -1268,9 +1351,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 40;
                                                     cicloActual += 40;//Aumento 40 por escribir desde cache remoto
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -1279,6 +1364,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1294,6 +1380,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -1304,6 +1391,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -1315,6 +1403,7 @@ namespace MultiProcessorSimulator
                                     terminado = false;
                                     //Falta regresar a estado anterior
                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                    Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
                                 }
@@ -1323,6 +1412,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                 {
+                                    Simulador.reloj += 5;
                                     cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
                                     for (int i = 0; i < 5; i++)
                                         Simulador.barrera.SignalAndWait();
@@ -1330,9 +1420,11 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                         {
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                             guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
+                                            Simulador.reloj += 40;
                                             cicloActual += 40;//Aumento 16 por escribir desde memoria remota
                                             for (int i = 0; i < 40; i++)
                                                 Simulador.barrera.SignalAndWait();
@@ -1350,6 +1442,7 @@ namespace MultiProcessorSimulator
                                             //Falta regresar a estado anterior
                                             Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                             Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                            Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
                                         }
@@ -1362,9 +1455,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 40;
                                                     cicloActual += 40;//Aumento 16 por escribir a memoria remota
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -1373,6 +1468,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP1[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1389,6 +1485,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -1399,6 +1496,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -1409,9 +1507,11 @@ namespace MultiProcessorSimulator
                                             {
                                                 if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                 {
+                                                    Simulador.reloj++;
                                                     cicloActual++;//Aumento ciclo por ingresar a memoria
                                                     Simulador.barrera.SignalAndWait();
                                                     guardarAMemoria(2, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
+                                                    Simulador.reloj += 16;
                                                     cicloActual += 16;//Aumento 16 por escribir desde cache remoto
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
@@ -1420,6 +1520,7 @@ namespace MultiProcessorSimulator
                                                     {
                                                         Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Simulador.directorioP1[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1435,6 +1536,7 @@ namespace MultiProcessorSimulator
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                     Monitor.Exit(Simulador.directorioP1);//Libero el directorio
+                                                    Simulador.reloj++;
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                 }
@@ -1445,6 +1547,7 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
                                                 Monitor.Exit(Simulador.directorioP0);//Libero el directorio
+                                                Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
@@ -1456,6 +1559,7 @@ namespace MultiProcessorSimulator
                                     terminado = false;
                                     //Falta regresar a estado anterior
                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache local
+                                    Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
                                 }
@@ -1474,6 +1578,7 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
+                        Simulador.reloj++;
                         cicloActual++;
                         Simulador.barrera.SignalAndWait();
                     }
@@ -1509,7 +1614,7 @@ namespace MultiProcessorSimulator
             {
                 lock (Simulador.contextoP0) {
                     Simulador.contextoP0[contextoActual][33] = cicloActual;
-                    Simulador.contextoP0[contextoActual][37] = cicloActual;
+                    Simulador.contextoP0[contextoActual][37] = Simulador.reloj;
                 }
                 
             }
@@ -1517,7 +1622,7 @@ namespace MultiProcessorSimulator
                 lock (Simulador.contextoP1)
                 {
                     Simulador.contextoP1[contextoActual][33] = cicloActual;
-                    Simulador.contextoP1[contextoActual][37] = cicloActual;
+                    Simulador.contextoP1[contextoActual][37] = Simulador.reloj;
                 }
             }
 
