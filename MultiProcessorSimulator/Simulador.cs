@@ -57,7 +57,7 @@ namespace MultiProcessorSimulator
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
             int modo = Int32.Parse(Console.ReadLine());
 
-            barrera = new Barrier(4);                                           //Inicializacion de la barrera
+            barrera = new Barrier(3);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
             contextoP0[0][34] = 0;
@@ -70,10 +70,10 @@ namespace MultiProcessorSimulator
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
 
-            contextoP1[0][34] = 0;
+            /*contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
-            nucleo2Thread.Start();
+            nucleo2Thread.Start();*/
 
             //Sincronizador de ciclos
             bool flag = true;
@@ -95,7 +95,9 @@ namespace MultiProcessorSimulator
             memInstruccionesP1 = new int[256]; // size = 256
             //Inicializo la memoria compartida
             memCompartidaP0 = new int[64]; // size = 64
+            memCompartidaP0 = Enumerable.Repeat(1,64).ToArray();
             memCompartidaP1 = new int[32]; // size = 32
+            memCompartidaP1 = Enumerable.Repeat(1,32).ToArray();
             //Inicializo registros
             registrosN0 = new int[32];
             registrosN1 = new int[32];
