@@ -49,8 +49,8 @@ namespace MultiProcessorSimulator
             inicializar();
 
             //Lleno memoria de instrucciones
-            guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0);
-            guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1);
+            guardarInstrucciones(contextoP0, memInstruccionesP0, hilosP0,0);
+            guardarInstrucciones(contextoP1, memInstruccionesP1, hilosP1,1);
 
             //Pregunto por modo de ejecucion
             Console.WriteLine("\n");
@@ -254,31 +254,47 @@ namespace MultiProcessorSimulator
         // EFECTO: Guarda las instrucciones en la memoria y crea los contextos iniciales
         // REQUIERE: contexto destino, memoria donde se guardaran los hilillos, los hilillos fuente
         // MODIFICA: 
-        public void guardarInstrucciones(int [][] contexto, int[] mem, string[] hilillos)
+        public void guardarInstrucciones(int [][] contexto, int[] mem, string[] hilillos, int numProcesador)
         {
 
-            string[] lines;
-            int bloque = 0;
+            string[] lines;//TODO: Cambiar bloue por direccion.
+            int direccion = 0;
+            if (numProcesador == 0)
+            {
+                direccion = 256;
+            }
+            else
+                direccion = 128;
             for (int i = 0; i< hilillos.Length; ++i)
             {
-                contexto[i][0] = bloque;
+                contexto[i][0] = direccion;
                 contexto[i][33] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
                 contexto[i][34] = -1; // Indica que estan en desuso
                 lines = System.IO.File.ReadAllLines(hilillos[i]);
                 foreach (string line in lines)
                 {
                     string[] aux = line.Split(' ');
-                    mem[bloque] = Int32.Parse(aux[0]);
-                    mem[bloque+1] = Int32.Parse(aux[1]);
-                    mem[bloque+2] = Int32.Parse(aux[2]);
-                    mem[bloque+3] = Int32.Parse(aux[3]);
-                    bloque += 4;
-                    if(bloque >= mem.Length)
+                    if(numProcesador == 0)
+                    {
+                        mem[direccion-256] = Int32.Parse(aux[0]);
+                        mem[direccion-256 + 1] = Int32.Parse(aux[1]);
+                        mem[direccion-256 + 2] = Int32.Parse(aux[2]);
+                        mem[direccion-256 + 3] = Int32.Parse(aux[3]);
+                    }
+                    else
+                    {
+                        mem[direccion-128] = Int32.Parse(aux[0]);
+                        mem[direccion-128 + 1] = Int32.Parse(aux[1]);
+                        mem[direccion-128 + 2] = Int32.Parse(aux[2]);
+                        mem[direccion-128 + 3] = Int32.Parse(aux[3]);
+                    }
+                    direccion += 4;
+                    if(direccion >= mem.Length)
                     {
                         break;
                     }
                 }
-                if (bloque >= mem.Length)
+                if (direccion >= mem.Length)
                 {
                     break;
                 }
