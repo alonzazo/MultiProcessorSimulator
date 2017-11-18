@@ -579,13 +579,13 @@ namespace MultiProcessorSimulator
             int numeroBloque = obtenerNumBloque();
             int numPalabra = obtenerNumPalabra();
             int posCache = obtenerPosCache(numeroBloque);
-            int[] memCompartidaP0 = Simulador.memCompartidaP0; 
+            /*int[] memCompartidaP0 = Simulador.memCompartidaP0; 
             int[] memCompartidaP1 = Simulador.memCompartidaP1;
             int[,] cacheDatosN0 = Simulador.cacheDatosN0;
             int[,] cacheDatosN1 = Simulador.cacheDatosN1;
             int[,] cacheDatosN2 = Simulador.cacheDatosN2;
             int[,] directorioP0 = Simulador.directorioP0;
-            int[,] directorioP1 = Simulador.directorioP1;
+            int[,] directorioP1 = Simulador.directorioP1;*/
             int numProcesadorBloque = numDirectorio(numeroBloque);
             int numProcesadorBloqueVictima;
 
@@ -604,7 +604,7 @@ namespace MultiProcessorSimulator
                                 numProcesadorBloqueVictima = numDirectorio(Simulador.cacheDatosN0[posCache, 0]);//Obtengo en cual procesador se encuentra el bloque
                                 if (Simulador.cacheDatosN0[posCache, 1] == 2) //Si la victima esta modificada
                                 {
-                                    if(numProcesadorBloqueVictima == 0)//Si el bloque esta en el procesador 0
+                                    if (numProcesadorBloqueVictima == 0)//Si el bloque esta en el procesador 0
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
@@ -622,7 +622,7 @@ namespace MultiProcessorSimulator
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Pongo 0 el bit del N0
                                                 Monitor.Exit(Simulador.directorioP0);//Libero directorio de la victima
-                                                Simulador.cacheDatosN0[posCache,1] = 0;//Invalido la posicion en la cache
+                                                Simulador.cacheDatosN0[posCache, 1] = 0;//Invalido la posicion en la cache
 
                                             }
                                             else//Si no puedo blouear el directorio de la victima
@@ -631,7 +631,7 @@ namespace MultiProcessorSimulator
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
-                                                terminado = false;                                             
+                                                terminado = false;
                                             }
                                         }
                                         else//No puedo bloquear la memoria
@@ -639,7 +639,7 @@ namespace MultiProcessorSimulator
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                             cicloActual++;
-                                            Simulador.barrera.SignalAndWait();                                
+                                            Simulador.barrera.SignalAndWait();
                                         }
                                     }
                                     else //Si el bloque esta en el procesador 1
@@ -651,7 +651,7 @@ namespace MultiProcessorSimulator
                                             if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la victima
                                             {
                                                 cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
-                                                for(int i = 0; i < 5; i++)
+                                                for (int i = 0; i < 5; i++)
                                                     Simulador.barrera.SignalAndWait();
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
                                                 cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del otro procesador
@@ -691,7 +691,7 @@ namespace MultiProcessorSimulator
                                             cicloActual++;//Aumento el ciclo por bloquear memoria
                                             Simulador.barrera.SignalAndWait();
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
-                                            if(Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0],2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)//Si ninguna otra cache tiene el bloque
+                                            if (Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;
                                             }
@@ -704,14 +704,14 @@ namespace MultiProcessorSimulator
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                             cicloActual++;
-                                            Simulador.barrera.SignalAndWait();                                           
+                                            Simulador.barrera.SignalAndWait();
                                         }
                                     }
                                     else //Si el bloque esta en el procesador 1
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-                                            cicloActual+=5;//Aumento el ciclo por bloquear memoria remota
+                                            cicloActual += 5;//Aumento el ciclo por bloquear memoria remota
                                             for (int i = 0; i < 5; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -735,24 +735,24 @@ namespace MultiProcessorSimulator
 
                             }
                             //Ya me encargue de la victima del reemplazo
-                            if(numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
+                            if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                 {
                                     cicloActual++;//Aumento un ciclo por acceso a directorio local
                                     Simulador.barrera.SignalAndWait();
-                                    if(Simulador.directorioP0[numeroBloque,0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
+                                    if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                     {
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                         {
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
-                                            guardarBloqueEnCache(posCache, numeroBloque,numPalabra,1);//Guardo el bloque en la cache
-                                            cicloActual+=16;//Aumento 16 por escribir desde memoria local
-                                            for(int i = 0; i < 16; i++)
+                                            guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
+                                            cicloActual += 16;//Aumento 16 por escribir desde memoria local
+                                            for (int i = 0; i < 16; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
-                                            if(Simulador.directorioP0[numeroBloque, 0] == 0)
+                                            if (Simulador.directorioP0[numeroBloque, 0] == 0)
                                                 Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                             Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
                                             Monitor.Exit(Simulador.directorioP0);//Libero el directorio
@@ -771,7 +771,7 @@ namespace MultiProcessorSimulator
                                     }
                                     else//Si en el directorio esta M
                                     {
-                                        if(Simulador.directorioP0[numeroBloque,2] == 1)//Esta en cache del N1
+                                        if (Simulador.directorioP0[numeroBloque, 2] == 1)//Esta en cache del N1
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN1))//Bloqueo la cache donde esta
                                             {
@@ -784,7 +784,7 @@ namespace MultiProcessorSimulator
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
-                                                    for (int j = 0; j < Simulador.cacheDatosN1.Length; j++)//Copio lo que hay en la cache del N1 en la cache del N0
+                                                    for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                     }
@@ -831,7 +831,7 @@ namespace MultiProcessorSimulator
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
-                                                    for (int j = 0; j < Simulador.cacheDatosN2.Length; j++)//Copio lo que hay en la cache del N2 en la cache del N0
+                                                    for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
@@ -879,7 +879,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                 {
-                                    cicloActual+=5;//Aumento un ciclo por acceso a directorio remoto
+                                    cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
                                     for (int i = 0; i < 5; i++)
                                         Simulador.barrera.SignalAndWait();
                                     if (Simulador.directorioP1[numeroBloque, 0] == 0 || Simulador.directorioP1[numeroBloque, 0] == 1)//Si en el directorio esta U o C
@@ -925,7 +925,7 @@ namespace MultiProcessorSimulator
                                                     for (int i = 0; i < 40; i++)
                                                         Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
-                                                    for (int j = 0; j < Simulador.cacheDatosN1.Length; j++)//Copio lo que hay en la cache del N1 en la cache del N0
+                                                    for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                     }
@@ -972,7 +972,7 @@ namespace MultiProcessorSimulator
                                                     for (int i = 0; i < 16; i++)
                                                         Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
-                                                    for (int j = 0; j < Simulador.cacheDatosN2.Length; j++)//Copio lo que hay en la cache del N2 en la cache del N0
+                                                    for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                     {
                                                         Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                     }
@@ -1018,6 +1018,8 @@ namespace MultiProcessorSimulator
                             }
 
                         }
+                        else
+                            terminado = true;
                         if (terminado)//Si esta en cache y esta modificado o compartido
                         {
                             registros[IR[2]] = Simulador.cacheDatosN0[posCache, numPalabra + 2];//Copiamos lo que tiene la cache en el registro
@@ -1242,7 +1244,7 @@ namespace MultiProcessorSimulator
                 case 0:
                     Simulador.cacheDatosN0[posCache, 0] = numBloque;
                     Simulador.cacheDatosN0[posCache, 1] = estado;
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         if(numBloque < 16)
                             Simulador.cacheDatosN0[posCache, i] = Simulador.memCompartidaP0[numBloque * 4 + numPalabra];
@@ -1253,7 +1255,7 @@ namespace MultiProcessorSimulator
                 case 1:
                     Simulador.cacheDatosN1[posCache, 0] = numBloque;
                     Simulador.cacheDatosN1[posCache, 1] = estado;
-                    for (int i = 2; i < Simulador.cacheDatosN1.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         if (numBloque < 16)
                             Simulador.cacheDatosN1[posCache, i] = Simulador.memCompartidaP0[numBloque * 4 + numPalabra];
@@ -1264,7 +1266,7 @@ namespace MultiProcessorSimulator
                 case 2:
                     Simulador.cacheDatosN2[posCache, 0] = numBloque;
                     Simulador.cacheDatosN2[posCache, 1] = estado;
-                    for (int i = 2; i < Simulador.cacheDatosN2.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         if (numBloque < 16)
                             Simulador.cacheDatosN2[posCache, i] = Simulador.memCompartidaP0[numBloque * 4 + numPalabra];
@@ -1280,7 +1282,7 @@ namespace MultiProcessorSimulator
             int cache = -1;
             if (numDirectorio == 0)
             {
-                for (int i = 2; i < Simulador.directorioP0.Length; i++)
+                for (int i = 1; i < 4; i++)
                 {
                     if (Simulador.directorioP0[numBloque, i] == 1)
                     {
@@ -1291,7 +1293,7 @@ namespace MultiProcessorSimulator
             }
             else
             {
-                for (int i = 2; i < Simulador.directorioP1.Length; i++)
+                for (int i = 1; i < 4; i++)
                 {
                     if (Simulador.directorioP1[numBloque, i] == 1)
                     {
@@ -1309,21 +1311,21 @@ namespace MultiProcessorSimulator
             {
                 if (numCache == 0)
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP0[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN0[posCache, i];
                     }
                 }
                 else if (numCache == 1)
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP0[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN1[posCache, i];
                     }
                 }
                 else
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP0[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN2[posCache, i];
                     }
@@ -1333,21 +1335,21 @@ namespace MultiProcessorSimulator
             {
                 if (numCache == 0)
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN0[posCache, i];
                     }
                 }
                 else if (numCache == 1)
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN1[posCache, i];
                     }
                 }
                 else
                 {
-                    for (int i = 2; i < Simulador.cacheDatosN0.Length; i++)
+                    for (int i = 2; i < 6; i++)
                     {
                         Simulador.memCompartidaP1[numBloque * 4 + (i - 2)] = Simulador.cacheDatosN2[posCache, i];
                     }
