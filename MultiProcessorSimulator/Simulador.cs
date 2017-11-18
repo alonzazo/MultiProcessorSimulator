@@ -289,14 +289,21 @@ namespace MultiProcessorSimulator
                         mem[direccion-128 + 3] = Int32.Parse(aux[3]);
                     }
                     direccion += 4;
-                    if(direccion >= mem.Length)
+                    if(numProcesador == 0)
                     {
-                        break;
+                        if ((direccion - 256) >= mem.Length)
+                        {
+                            break;
+                        }
                     }
-                }
-                if (direccion >= mem.Length)
-                {
-                    break;
+                    else
+                    {
+                        if ((direccion - 128) >= mem.Length)
+                        {
+                            break;
+                        }
+                    }
+
                 }
             }
             
