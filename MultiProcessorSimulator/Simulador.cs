@@ -58,7 +58,7 @@ namespace MultiProcessorSimulator
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
             int modo = Int32.Parse(Console.ReadLine());
 
-            barrera = new Barrier(4);                                           //Inicializacion de la barrera
+            barrera = new Barrier(2);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
             contextoP0[0][34] = 0;
@@ -66,7 +66,7 @@ namespace MultiProcessorSimulator
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
 
-            contextoP0[1][34] = 0;
+            /*contextoP0[1][34] = 0;
             Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
@@ -74,7 +74,7 @@ namespace MultiProcessorSimulator
             contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
-            nucleo2Thread.Start();
+            nucleo2Thread.Start();*/
 
             //Sincronizador de ciclos
             bool flag = true;
@@ -96,9 +96,9 @@ namespace MultiProcessorSimulator
             memInstruccionesP1 = new int[256]; // size = 256
             //Inicializo la memoria compartida
             memCompartidaP0 = new int[64]; // size = 64
-            memCompartidaP0 = Enumerable.Repeat(1,64).ToArray();
+            memCompartidaP0 = Enumerable.Repeat(0,64).ToArray();
             memCompartidaP1 = new int[32]; // size = 32
-            memCompartidaP1 = Enumerable.Repeat(1,32).ToArray();
+            memCompartidaP1 = Enumerable.Repeat(0,32).ToArray();
             //Inicializo registros
             registrosN0 = new int[32];
             registrosN1 = new int[32];
@@ -150,9 +150,10 @@ namespace MultiProcessorSimulator
         {
             for(int i =0; i < Dir.GetLength(0); ++i)
             {
-                Dir[i, 1] = 1;
-                Dir[i, 2] = 1;
-                Dir[i, 3] = 1;
+                Dir[i, 0] = 0;
+                Dir[i, 1] = 0;
+                Dir[i, 2] = 0;
+                Dir[i, 3] = 0;
             }
         }
 
