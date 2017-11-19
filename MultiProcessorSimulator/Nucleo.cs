@@ -2277,7 +2277,7 @@ namespace MultiProcessorSimulator
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
-                                            guardarAMemoria(0, 0, numeroBloque, posCache);
+                                            guardarAMemoria(0, 0, Simulador.cacheDatosN0[posCache, 0], posCache);
                                             Simulador.reloj += 16;
                                             cicloActual += 16;
                                             for (int i = 0; i < 16; i++)
@@ -2318,7 +2318,7 @@ namespace MultiProcessorSimulator
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
-                                            guardarAMemoria(0, 1, numeroBloque, posCache);
+                                            guardarAMemoria(0, 1, Simulador.cacheDatosN0[posCache, 0], posCache);
                                             Simulador.reloj += 40;
                                             cicloActual += 40;
                                             for (int i = 0; i < 40; i++)
