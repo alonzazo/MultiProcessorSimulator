@@ -2088,13 +2088,13 @@ namespace MultiProcessorSimulator
 
             if(numNucleo == 0)//SW para nucleo 0
             {
-                while (!terminado)
+                while (!terminado)//Procedimiento del 
                 {
                     if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloque la cache del nucleo 0
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Si esta modificado o compartido
                         {
-                            if(Simulador.cacheDatosN0[posCache,1] == 2)//Si esta modificado
+                            if(Simulador.cacheDatosN0[posCache,1] == 2)//Si esta modificado, simplemente se cambia en la caché
                             {
                                 terminado = true;
                             }
@@ -2105,13 +2105,13 @@ namespace MultiProcessorSimulator
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloquear directorio P0
                                     {
                                         Simulador.reloj ++;
-                                        cicloActual ++;
+                                        cicloActual ++; //1 ciclo
                                         Simulador.barrera.SignalAndWait();
-                                        if (Simulador.directorioP0[numeroBloque, 2] == 1)//Esta tambien en cache del N1
+                                        if (Simulador.directorioP0[numeroBloque, 2] == 1)       //Esta tambien en cache del N1
                                         {
-                                            if (Monitor.TryEnter(Simulador.cacheDatosN1))//Bloqueo cache del nucleo 1
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN1))       //Bloqueo cache del nucleo 1 
                                             {
-                                                Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1
+                                                Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1 //Agregar ciclos por acceo a caché ajena
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero cache N1
                                             }
                                             else//No se puede bloquear
@@ -2124,11 +2124,11 @@ namespace MultiProcessorSimulator
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
-                                        else//Esta tambien en cache del N2
+                                        if (Simulador.directorioP0[numeroBloque, 3] == 1)//Esta tambien en cache del N2 TODO: if normal
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
                                             {
-                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
+                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2 //Agregar ciclos por acceo a caché ajena
                                                 Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
                                             }
                                             else//No se puede bloquear
@@ -2180,7 +2180,7 @@ namespace MultiProcessorSimulator
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
-                                        else//Esta tambien en cache del N2
+                                        if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)//Esta tambien en cache del N2
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
                                             {
@@ -2620,7 +2620,7 @@ namespace MultiProcessorSimulator
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
-                                        else if (Simulador.directorioP1[numeroBloque-16, 3] == 1)//Esta en cache del N2
+                                        if (Simulador.directorioP1[numeroBloque-16, 3] == 1)//Esta en cache del N2
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
                                             {
