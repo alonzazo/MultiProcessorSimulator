@@ -1225,7 +1225,7 @@ namespace MultiProcessorSimulator
                                             for (int i = 0; i < 5; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0]-16, 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
-                                            if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0]-16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache-16, 0], 3] == 0)//Si ninguna otra cache tiene el bloque
+                                            if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0]-16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0]-16, 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
                                                 Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0]-16, 0] = 0;
                                             }
@@ -2097,54 +2097,6 @@ namespace MultiProcessorSimulator
                             if(Simulador.cacheDatosN0[posCache,1] == 2)//Si esta modificado
                             {
                                 terminado = true;
-                                /*if (numeroBloque < 16)//Si esta en memoria P0
-                                {
-                                    if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloquear memoria P0
-                                    {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();//16 ciclos
-                                        guardarAMemoria(0, 0, numeroBloque, posCache);//Guardo el bloque modificado
-                                        Simulador.reloj+=16;
-                                        cicloActual+=16;
-                                        for(int i = 0;  i < 16; i++)
-                                            Simulador.barrera.SignalAndWait();
-                                        Monitor.Exit(Simulador.memCompartidaP0);
-                                        terminado = true; //Solo falta subir cache a registro
-                                    }
-                                    else//No se puede bloquear
-                                    {
-                                        terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Monitor.Exit(Simulador.cacheDatosN0);
-                                        Simulador.barrera.SignalAndWait();
-                                    }
-                                }
-                                else//Si esta en memoria P1
-                                {
-                                    if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloquear memoria P1
-                                    {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();//40 ciclos
-                                        guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo el bloque modificado
-                                        Simulador.reloj += 40;
-                                        cicloActual += 40;
-                                        for (int i = 0; i < 40; i++)
-                                            Simulador.barrera.SignalAndWait();
-                                        Monitor.Exit(Simulador.memCompartidaP1);
-                                        terminado = true; //Solo falta subir cache a registro
-                                    }
-                                    else//No se puede bloquear
-                                    {
-                                        terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Monitor.Exit(Simulador.cacheDatosN0);
-                                        Simulador.barrera.SignalAndWait();
-                                    }
-                                }*/
                             }
                             else if(Simulador.cacheDatosN0[posCache, 1] == 1)//Si esta compartido
                             {
@@ -2165,10 +2117,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2182,10 +2134,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2197,9 +2149,9 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear directorio
                                     {
                                         terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.reloj++;
                                         cicloActual++;
-                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.barrera.SignalAndWait();
                                     }
                                 }
@@ -2221,10 +2173,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2238,10 +2190,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2253,9 +2205,9 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear directorio
                                     {
                                         terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.reloj++;
                                         cicloActual++;
-                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.barrera.SignalAndWait();
                                     }
                                 }
@@ -2290,19 +2242,19 @@ namespace MultiProcessorSimulator
                                         else//No se puede bloquear memoria
                                         {
                                             terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN0);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
-                                            Monitor.Exit(Simulador.cacheDatosN0);
                                         }                 
                                     }
                                     else//No se puede bloquear
                                     {
                                         terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.reloj++;
                                         cicloActual++;
                                         Simulador.barrera.SignalAndWait();
-                                        Monitor.Exit(Simulador.cacheDatosN0);
                                     }
                                 }
                                 else//Victima es de memoria de P1
@@ -2331,6 +2283,8 @@ namespace MultiProcessorSimulator
                                         else//No se puede bloquear memoria
                                         {
                                             terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN0);
+                                            Monitor.Exit(Simulador.directorioP1);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
@@ -2339,10 +2293,10 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear
                                     {
                                         terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
                                         Simulador.reloj++;
                                         cicloActual++;
                                         Simulador.barrera.SignalAndWait();
-                                        Monitor.Exit(Simulador.cacheDatosN0);
                                     }                             
                                 }
                             }
@@ -2464,7 +2418,7 @@ namespace MultiProcessorSimulator
                                                         cicloActual++;
                                                         Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.cacheDatosN0);
-                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
                                                         Monitor.Exit(Simulador.directorioP0);
                                                     }
                                                 
@@ -2551,10 +2505,10 @@ namespace MultiProcessorSimulator
                                 else//No se puede bloquear
                                 {
                                     terminado = false;
+                                    Monitor.Exit(Simulador.cacheDatosN0);
                                     Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
-                                    Monitor.Exit(Simulador.cacheDatosN0);
                                 }
                             }
                             else//Esta en P1
@@ -2586,12 +2540,12 @@ namespace MultiProcessorSimulator
                                                  else//No puedo bloquear
                                                  {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.cacheDatosN0);
                                                     Monitor.Exit(Simulador.cacheDatosN1);
                                                     Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
                                                   }
                                                   Simulador.cacheDatosN1[posCache, 1] = 0;//Coloco invalido bloque en cache
                                                   Monitor.Exit(Simulador.cacheDatosN1);
@@ -2599,11 +2553,11 @@ namespace MultiProcessorSimulator
                                             else//No lo puedo bloquear
                                             {
                                                 terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP1);
                                                 Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
-                                                Monitor.Exit(Simulador.cacheDatosN0);
-                                                Monitor.Exit(Simulador.directorioP1);
                                             }
                                         }
                                         else //Esta modificado en N2
@@ -2625,12 +2579,12 @@ namespace MultiProcessorSimulator
 													else//No puedo bloquear
 													{
 														terminado = false;
-														Simulador.reloj++;
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Monitor.Exit(Simulador.directorioP1);
+                                                        Simulador.reloj++;
 														cicloActual++;
 														Simulador.barrera.SignalAndWait();
-														Monitor.Exit(Simulador.cacheDatosN0);
-														Monitor.Exit(Simulador.cacheDatosN2);
-														Monitor.Exit(Simulador.directorioP1);
 													}
 
 												Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
@@ -2639,11 +2593,11 @@ namespace MultiProcessorSimulator
                                             else//No lo puedo bloquear
                                             {
                                                 terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP1);
                                                 Simulador.reloj++;
                                                 cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
-                                                Monitor.Exit(Simulador.cacheDatosN0);
-                                                Monitor.Exit(Simulador.directorioP1);
                                             }
                                         }
                                     }
@@ -2659,10 +2613,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2676,10 +2630,10 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
                                                 Monitor.Exit(Simulador.cacheDatosN0);
                                                 Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
                                                 Simulador.barrera.SignalAndWait();
                                             }
                                         }
@@ -2699,11 +2653,11 @@ namespace MultiProcessorSimulator
 										else//No se puede bloquear
 										{
 											terminado = false;
-											Simulador.reloj++;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Monitor.Exit(Simulador.directorioP1);
+                                        Simulador.reloj++;
 											cicloActual++;
 											Simulador.barrera.SignalAndWait();
-											Monitor.Exit(Simulador.cacheDatosN0);
-											Monitor.Exit(Simulador.directorioP1);
 										}
 									Simulador.directorioP1[numeroBloque-16, 0] = 2; //Coloco directorio en M
 									Simulador.directorioP1[numeroBloque-16, 1] = 1; //Indico que esta en cache del N0
@@ -2715,19 +2669,24 @@ namespace MultiProcessorSimulator
                                 else//No se puede bloquear
                                 {
                                     terminado = false;
+                                    Monitor.Exit(Simulador.cacheDatosN0);
+
                                     Simulador.reloj++;
                                     cicloActual++;
                                     Simulador.barrera.SignalAndWait();
-                                    Monitor.Exit(Simulador.cacheDatosN0);
                                 }
                             }
                             
                         }
                         if (terminado)
                         {
-                            Simulador.cacheDatosN0[posCache, numPalabra + 2] = registros[IR[2]];                    
+                            Simulador.cacheDatosN0[posCache, numPalabra + 2] = registros[IR[2]];
+                            Monitor.Exit(Simulador.cacheDatosN0);
                         }
-                        Monitor.Exit(Simulador.cacheDatosN0);
+                        else
+                        {
+                            terminado = false;
+                        }
                     }
                     else//No se puede bloquear la cache del nucleo 0
                     {
@@ -2740,6 +2699,612 @@ namespace MultiProcessorSimulator
             }
             else if(numNucleo == 1)//SW para nucleo 1
             {
+                while (!terminado)
+                {
+                    if (Monitor.TryEnter(Simulador.cacheDatosN1))//Bloque la cache del nucleo 1
+                    {
+                        if (bloqueEnCache(posCache, numeroBloque))//Si esta modificado o compartido
+                        {
+                            if (Simulador.cacheDatosN1[posCache, 1] == 2)//Si esta modificado
+                            {
+                                terminado = true;
+                            }
+                            else if (Simulador.cacheDatosN1[posCache, 1] == 1)//Si esta compartido
+                            {
+                                if (numeroBloque < 16)//Directorio P0
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))//Bloquear directorio P0
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP0[numeroBloque, 1] == 0)//Esta tambien en cache del N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo cache del nucleo 0
+                                            {
+                                                Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
+                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else//Esta tambien en cache del N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
+                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        Simulador.directorioP0[numeroBloque, 0] = 2;//Pongo directorio en M
+                                        Simulador.directorioP0[numeroBloque, 2] = 0;//Cambio bit N1 a 0
+                                        Simulador.directorioP0[numeroBloque, 3] = 0;//Cambio bit N2 a 0
+                                        terminado = true; //solo falta subir registro a cache
+                                    }
+                                    else//No se puede bloquear directorio
+                                    {
+                                        terminado = false;
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else//Directorio P1
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))//Bloquear directorio P1
+                                    {
+                                        Simulador.reloj += 5;
+                                        cicloActual += 5;
+                                        for (int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP1[numeroBloque - 16, 1] == 1)//Esta tambien en cache del N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo cache del nucleo 0
+                                            {
+                                                Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
+                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else//Esta tambien en cache del N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
+                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        Simulador.directorioP1[numeroBloque - 16, 0] = 2;//Pongo directorio en M
+                                        Simulador.directorioP1[numeroBloque - 16, 2] = 0;//Cambio bit N1 a 0
+                                        Simulador.directorioP1[numeroBloque - 16, 3] = 0;//Cambio bit N2 a 0
+                                        terminado = true; //solo falta subir registro a cache
+                                    }
+                                    else//No se puede bloquear directorio
+                                    {
+                                        terminado = false;
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                        }
+                        else//Esta invalido o no esta
+                        {
+                            if (Simulador.cacheDatosN1[posCache, 1] == 2)//Si victima esta modificada
+                            {
+                                if (Simulador.cacheDatosN1[posCache, 0] < 16)//Victima es de memoria de P0
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo directorio P0
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo memoria
+                                        {
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                            guardarAMemoria(0, 0, Simulador.cacheDatosN1[posCache, 0], posCache);
+                                            Simulador.reloj += 16;
+                                            cicloActual += 16;
+                                            for (int i = 0; i < 16; i++)
+                                                Simulador.barrera.SignalAndWait();
+                                            Monitor.Exit(Simulador.memCompartidaP0);
+                                            Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] = 0;//Indico que ya no esta en cache N1
+                                            Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//La pongo Uncached
+                                            Monitor.Exit(Simulador.directorioP0);
+                                        }
+                                        else//No se puede bloquear memoria
+                                        {
+                                            terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN1);
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                        }
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else//Victima es de memoria de P1
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo directorio P1
+                                    {
+                                        Simulador.reloj += 5;
+                                        cicloActual += 5;
+                                        for (int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo memoria
+                                        {
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                            guardarAMemoria(0, 1, Simulador.cacheDatosN1[posCache, 0], posCache);
+                                            Simulador.reloj += 40;
+                                            cicloActual += 40;
+                                            for (int i = 0; i < 40; i++)
+                                                Simulador.barrera.SignalAndWait();
+                                            Monitor.Exit(Simulador.memCompartidaP1);
+                                            Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 1] = 0;//Indico que ya no esta en cache N1
+                                            Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//La pongo Uncached
+                                            Monitor.Exit(Simulador.directorioP1);
+                                        }
+                                        else//No se puede bloquear memoria
+                                        {
+                                            terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN1);
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                        }
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();                                     
+                                    }
+                                }
+                            }
+                            if (Simulador.cacheDatosN1[posCache, 1] == 1)//Si no esta invalida, entra si es C
+                            {
+                                if (Simulador.cacheDatosN1[posCache, 0] < 16)//Victima esta en directorio P0
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo directorio P0
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] = 0;//Indico que ya no esta en cache N1
+                                        if (Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 3] == 0)//Si ninuna otra cache lo tiene
+                                            Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//La pongo Uncached
+                                        Monitor.Exit(Simulador.directorioP0);
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else//Victima esta en directorio P1
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo directorio P1
+                                    {
+                                        Simulador.reloj += 5;
+                                        cicloActual += 5;
+                                        for (int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 1] = 0;//Indico que ya no esta en cache N1
+                                        if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 3] == 0)//Si ninuna otra cache lo tiene
+                                            Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//La pongo Uncached
+                                        Monitor.Exit(Simulador.directorioP1);
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                            //Me encargue de victima o estaba invalido en cache, le caigo encima
+                            if (numeroBloque < 16)//Esta en P0
+                            {
+                                if (Monitor.TryEnter(Simulador.directorioP0))//Bloque el directorio
+                                {
+                                    Simulador.reloj++;
+                                    cicloActual++;
+                                    Simulador.barrera.SignalAndWait();
+                                    if (Simulador.directorioP0[numeroBloque, 0] == 2)//Si el bloque que necesito esta M
+                                    {
+                                        if (Simulador.directorioP0[numeroBloque, 1] == 1)//Esta modificado en N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloque la cache que lo tiene
+                                            {
+                                                if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloque memoria de P0
+                                                {
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    guardarAMemoria(0, 0, numeroBloque, posCache);
+                                                    Simulador.reloj += 16;
+                                                    cicloActual += 16;
+                                                    for (int i = 0; i < 16; i++)
+                                                        Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.memCompartidaP0);
+                                                }
+                                                else//No puedo bloquear
+                                                {
+                                                    terminado = false;
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                }
+                                                Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                            }
+                                            else//No lo puedo bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                            }
+                                        }
+                                        else //Esta modificado en N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloque la cache que lo tiene
+                                            {
+                                                if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloque memoria de P0
+                                                {
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    guardarAMemoria(2, 0, numeroBloque, posCache);
+                                                    Simulador.reloj += 40;
+                                                    cicloActual += 40;
+                                                    for (int i = 0; i < 40; i++)
+                                                        Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.memCompartidaP0);
+                                                }
+                                                else//No puedo bloquear
+                                                {
+                                                    terminado = false;
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                }
+
+                                                Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                Monitor.Exit(Simulador.cacheDatosN2);
+                                            }
+                                            else//No lo puedo bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                            }
+                                        }
+                                    }
+                                    else if (Simulador.directorioP0[numeroBloque, 0] == 1)//Si el bloque que necesito esta C
+                                    {
+                                        if (Simulador.directorioP0[numeroBloque, 1] == 1)//Esta en cache del N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo cache del nucleo 0
+                                            {
+                                                Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
+                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else if (Simulador.directorioP0[numeroBloque, 3] == 1)//Esta en cache del N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
+                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                    }
+                                    if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloque la memoria que lo tiene
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);//Guardo el bloque en cache
+                                        Simulador.reloj += 16;
+                                        cicloActual += 16;
+                                        for (int i = 0; i < 16; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        Monitor.Exit(Simulador.memCompartidaP0);
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Monitor.Exit(Simulador.directorioP0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+
+                                    Simulador.directorioP0[numeroBloque, 0] = 2; //Coloco directorio en M
+                                    Simulador.directorioP0[numeroBloque, 1] = 1; //Indico que esta en cache del N0
+                                    Simulador.directorioP0[numeroBloque, 2] = 0; //Indico que esta en cache del N1
+                                    Simulador.directorioP0[numeroBloque, 3] = 0;//Indico que esta en cache del N2
+                                    terminado = true;
+                                    Monitor.Exit(Simulador.directorioP0);
+                                }
+                                else//No se puede bloquear
+                                {
+                                    terminado = false;
+                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                    Simulador.reloj++;
+                                    cicloActual++;
+                                    Simulador.barrera.SignalAndWait();
+                                }
+                            }
+                            else//Esta en P1
+                            {
+                                if (Monitor.TryEnter(Simulador.directorioP1))//Bloque el directorio
+                                {
+                                    Simulador.reloj += 5;
+                                    cicloActual += 5;
+                                    for (int i = 0; i < 5; i++)
+                                        Simulador.barrera.SignalAndWait();
+                                    if (Simulador.directorioP1[numeroBloque - 16, 0] == 2)//Si el bloque que necesito esta M
+                                    {
+                                        if (Simulador.directorioP1[numeroBloque - 16, 1] == 1)//Esta modificado en N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloque la cache que lo tiene
+                                            {
+                                                if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloque memoria de P1
+                                                {
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    guardarAMemoria(0, 1, numeroBloque, posCache);
+                                                    Simulador.reloj += 40;
+                                                    cicloActual += 40;
+                                                    for (int i = 0; i < 40; i++)
+                                                        Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.memCompartidaP1);
+                                                }
+                                                else//No puedo bloquear
+                                                {
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                                Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                            }
+                                            else//No lo puedo bloquear
+                                            {
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                                
+                                            }
+                                        }
+                                        else //Esta modificado en N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloque la cache que lo tiene
+                                            {
+                                                if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloque memoria de P1
+                                                {
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                    guardarAMemoria(2, 1, numeroBloque, posCache);
+                                                    Simulador.reloj += 16;
+                                                    cicloActual += 16;
+                                                    for (int i = 0; i < 16; i++)
+                                                        Simulador.barrera.SignalAndWait();
+                                                    Monitor.Exit(Simulador.memCompartidaP1);
+                                                }
+                                                else//No puedo bloquear
+                                                {
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+
+                                                Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                Monitor.Exit(Simulador.cacheDatosN2);
+                                            }
+                                            else//No lo puedo bloquear
+                                            {
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                    }
+                                    else if (Simulador.directorioP1[numeroBloque - 16, 0] == 1)//Si el bloque que necesito esta C
+                                    {
+                                        if (Simulador.directorioP1[numeroBloque - 16, 1] == 1)//Esta en cache del N0
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo cache del nucleo 1
+                                            {
+                                                Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N1
+                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N1
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)//Esta en cache del N2
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
+                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                            }
+                                            else//No se puede bloquear
+                                            {
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                    }
+                                    if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloque la memoria que lo tiene
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);//Guardo el bloque en cache
+                                        Simulador.reloj += 40;
+                                        cicloActual += 40;
+                                        for (int i = 0; i < 40; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        Monitor.Exit(Simulador.memCompartidaP1);
+                                    }
+                                    else//No se puede bloquear
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                        Monitor.Exit(Simulador.directorioP1);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                    Simulador.directorioP1[numeroBloque - 16, 0] = 2; //Coloco directorio en M
+                                    Simulador.directorioP1[numeroBloque - 16, 1] = 1; //Indico que esta en cache del N0
+                                    Simulador.directorioP1[numeroBloque - 16, 2] = 0; //Indico que esta en cache del N1
+                                    Simulador.directorioP1[numeroBloque - 16, 3] = 0;//Indico que esta en cache del N2
+                                    terminado = true;
+                                    Monitor.Exit(Simulador.directorioP1);
+                                }
+                                else//No se puede bloquear
+                                {
+                                    terminado = false;
+                                    Monitor.Exit(Simulador.cacheDatosN1);                               
+                                    Simulador.reloj++;
+                                    cicloActual++;
+                                    Simulador.barrera.SignalAndWait();                                }
+                            }
+
+                        }
+                        if (terminado)
+                        {
+                            Simulador.cacheDatosN1[posCache, numPalabra + 2] = registros[IR[2]];
+                            Monitor.Exit(Simulador.cacheDatosN1);
+                        }
+                        else
+                        {
+                            terminado = false;
+                        }
+                    }
+                    else//No se puede bloquear la cache del nucleo 0
+                    {
+                        terminado = false;
+                        Simulador.reloj++;
+                        cicloActual++;
+                        Simulador.barrera.SignalAndWait();
+                    }
+                }
 
             }
             else//SW para nucleo 2
