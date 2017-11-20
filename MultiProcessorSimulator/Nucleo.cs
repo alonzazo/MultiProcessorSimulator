@@ -2103,7 +2103,7 @@ namespace MultiProcessorSimulator
                                     {
                                         Simulador.reloj++;
                                         cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+                                        Simulador.barrera.SignalAndWait();//16 ciclos
                                         guardarAMemoria(0, 0, numeroBloque, posCache);//Guardo el bloque modificado
                                         Simulador.reloj+=16;
                                         cicloActual+=16;
@@ -2127,7 +2127,7 @@ namespace MultiProcessorSimulator
                                     {
                                         Simulador.reloj++;
                                         cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+                                        Simulador.barrera.SignalAndWait();//40 ciclos
                                         guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo el bloque modificado
                                         Simulador.reloj += 40;
                                         cicloActual += 40;
