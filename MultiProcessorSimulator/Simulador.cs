@@ -58,7 +58,7 @@ namespace MultiProcessorSimulator
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
             int modo = Int32.Parse(Console.ReadLine());
 
-            barrera = new Barrier(2);                                           //Inicializacion de la barrera
+            barrera = new Barrier(3);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
             contextoP0[0][34] = 0;
@@ -66,10 +66,10 @@ namespace MultiProcessorSimulator
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
 
-            /*contextoP0[1][34] = 0;
+            contextoP0[1][34] = 0;
             Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
-            nucleo1Thread.Start();*/
+            nucleo1Thread.Start();
 
             /*contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
