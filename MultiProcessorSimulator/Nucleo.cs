@@ -2107,7 +2107,7 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción SW
         /// </summary>
-        private void instruccionSW()
+        /*private void instruccionSW()
         {
             logExecution += "Instrucción SW ejecutada en el contexto " + contextoActual + "\n";
             int numeroBloque = obtenerNumBloque();
@@ -2127,9 +2127,7 @@ namespace MultiProcessorSimulator
                         if (bloqueEnCache(posCache, numeroBloque))//Si esta modificado o compartido
                         {
                             if(Simulador.cacheDatosN0[posCache,1] == 2)//Si esta modificado, simplemente se cambia en la caché
-                            {
                                 terminado = true;
-                            }
                             else if(Simulador.cacheDatosN0[posCache, 1] == 1)//Si esta compartido
                             {
                                 if(numeroBloque < 16)//Directorio P0
@@ -2145,6 +2143,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1 //Agregar ciclos por acceo a caché ajena
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero cache N1
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2163,6 +2162,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2 //Agregar ciclos por acceo a caché ajena
                                                 Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2180,6 +2180,7 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[numeroBloque, 0] = 2;//Pongo directorio en M
                                             Simulador.directorioP0[numeroBloque, 2] = 0;//Cambio bit N1 a 0
                                             Simulador.directorioP0[numeroBloque, 3] = 0;//Cambio bit N2 a 0
+                                            Monitor.Exit(Simulador.directorioP0);
                                             terminado = true; //solo falta subir registro a cache
                                         }
                                         
@@ -2208,6 +2209,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1
                                                 Monitor.Exit(Simulador.cacheDatosN1);//Libero cache N1
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2226,6 +2228,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                 Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2243,6 +2246,7 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP1[numeroBloque - 16, 0] = 2;//Pongo directorio en M
                                             Simulador.directorioP1[numeroBloque - 16, 2] = 0;//Cambio bit N1 a 0
                                             Simulador.directorioP1[numeroBloque - 16, 3] = 0;//Cambio bit N2 a 0
+                                            Monitor.Exit(Simulador.directorioP1);
                                             terminado = true; //solo falta subir registro a cache
                                         }
                                         
@@ -2284,11 +2288,13 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Indico que ya no esta en cache N0
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;//La pongo Uncached
                                             Monitor.Exit(Simulador.directorioP0);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear memoria
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN0);
+                                            Monitor.Exit(Simulador.directorioP0);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
@@ -2327,6 +2333,7 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 1] = 0;//Indico que ya no esta en cache N0
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 0] = 0;//La pongo Uncached
                                             Monitor.Exit(Simulador.directorioP1);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear memoria
                                         {
@@ -2363,6 +2370,7 @@ namespace MultiProcessorSimulator
                                         if(Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)//Si ninuna otra cache lo tiene
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;//La pongo Uncached
                                         Monitor.Exit(Simulador.directorioP0);
+                                        volverAEmpezar = false;
                                     }
                                     else//No se puede bloquear
                                     {
@@ -2386,6 +2394,7 @@ namespace MultiProcessorSimulator
                                         if (Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 3] == 0)//Si ninuna otra cache lo tiene
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 0] = 0;//La pongo Uncached
                                         Monitor.Exit(Simulador.directorioP1);
+                                        volverAEmpezar = true;
                                     }
                                     else//No se puede bloquear
                                     {
@@ -2425,6 +2434,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 16; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP0);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -2450,7 +2460,7 @@ namespace MultiProcessorSimulator
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.cacheDatosN0);
-                                                    //        Monitor.Exit(Simulador.directorioP0);
+                                                    Monitor.Exit(Simulador.directorioP0);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -2469,6 +2479,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 40; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP0);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -2507,6 +2518,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero cache N1
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -2525,6 +2537,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -2549,6 +2562,7 @@ namespace MultiProcessorSimulator
                                             for (int i = 0; i < 16; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Monitor.Exit(Simulador.memCompartidaP0);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear
                                         {
@@ -2565,8 +2579,8 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[numeroBloque, 1] = 1; //Indico que esta en cache del N0
                                             Simulador.directorioP0[numeroBloque, 2] = 0; //Indico que esta en cache del N1
                                             Simulador.directorioP0[numeroBloque, 3] = 0;//Indico que esta en cache del N2
-                                            terminado = true;
                                             Monitor.Exit(Simulador.directorioP0);
+                                            terminado = true;
                                         }
                                         
                                     }
@@ -2605,6 +2619,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 40; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP1);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -2649,6 +2664,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 16; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP1);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -2661,9 +2677,11 @@ namespace MultiProcessorSimulator
                                                         Simulador.barrera.SignalAndWait();
                                                         volverAEmpezar = true;
                                                     }
-
-                                                    Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
-                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    if (!volverAEmpezar)
+                                                    {
+                                                        Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                    }
                                                 }
                                                 else//No lo puedo bloquear
                                                 {
@@ -2685,6 +2703,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN1[posCache, 1] = 0; //Pongo invalido en cache N1
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero cache N1
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -2703,6 +2722,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N2
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -2727,6 +2747,7 @@ namespace MultiProcessorSimulator
                                             for (int i = 0; i < 40; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Monitor.Exit(Simulador.memCompartidaP1);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear
                                         {
@@ -2752,7 +2773,6 @@ namespace MultiProcessorSimulator
                                     {
                                         terminado = false;
                                         Monitor.Exit(Simulador.cacheDatosN0);
-
                                         Simulador.reloj++;
                                         cicloActual++;
                                         Simulador.barrera.SignalAndWait();
@@ -2778,6 +2798,7 @@ namespace MultiProcessorSimulator
                         Simulador.reloj++;
                         cicloActual++;
                         Simulador.barrera.SignalAndWait();
+                        volverAEmpezar = true;
                     }
                 }
             }
@@ -2809,6 +2830,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2827,6 +2849,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                 Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2843,6 +2866,7 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[numeroBloque, 0] = 2;//Pongo directorio en M
                                             Simulador.directorioP0[numeroBloque, 1] = 0;//Cambio bit N0 a 0
                                             Simulador.directorioP0[numeroBloque, 3] = 0;//Cambio bit N2 a 0
+                                            Monitor.Exit(Simulador.directorioP0);
                                             terminado = true; //solo falta subir registro a cache
                                         }
                                         
@@ -2871,6 +2895,7 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
                                                 Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                                volverAEmpezar = false;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2883,12 +2908,13 @@ namespace MultiProcessorSimulator
                                                 volverAEmpezar = true;
                                             }
                                         }
-                                        if (Simulador.directorioP1[numeroBloque - 16, 1] == 3)//Esta tambien en cache del N2
+                                        if (Simulador.directorioP1[numeroBloque - 16, 3] == 3)//Esta tambien en cache del N2
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo cache del nucleo 2
                                             {
                                                 Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
-                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N2
+                                                volverAEmpezar = true;
                                             }
                                             else//No se puede bloquear
                                             {
@@ -2905,6 +2931,7 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP1[numeroBloque - 16, 0] = 2;//Pongo directorio en M
                                             Simulador.directorioP1[numeroBloque - 16, 1] = 0;//Cambio bit N1 a 0
                                             Simulador.directorioP1[numeroBloque - 16, 3] = 0;//Cambio bit N2 a 0
+                                            Monitor.Exit(Simulador.directorioP1);
                                             terminado = true; //solo falta subir registro a cache
                                         }
                                         
@@ -2922,8 +2949,7 @@ namespace MultiProcessorSimulator
                             }
                         }
                         else//Esta invalido o no esta
-                        {
-                            
+                        { 
                             if (Simulador.cacheDatosN1[posCache, 1] == 2)//Si victima esta modificada
                             {
                                 if (Simulador.cacheDatosN1[posCache, 0] < 16)//Victima es de memoria de P0
@@ -2947,11 +2973,13 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] = 0;//Indico que ya no esta en cache N1
                                             Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//La pongo Uncached
                                             Monitor.Exit(Simulador.directorioP0);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear memoria
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);
+                                            Monitor.Exit(Simulador.directorioP0);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
@@ -2990,11 +3018,13 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;//Indico que ya no esta en cache N1
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//La pongo Uncached
                                             Monitor.Exit(Simulador.directorioP1);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear memoria
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);
+                                            Monitor.Exit(Simulador.directorioP1);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
@@ -3025,6 +3055,7 @@ namespace MultiProcessorSimulator
                                         if (Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] == 0 && Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 3] == 0)//Si ninuna otra cache lo tiene
                                             Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//La pongo Uncached
                                         Monitor.Exit(Simulador.directorioP0);
+                                        volverAEmpezar = false;
                                     }
                                     else//No se puede bloquear
                                     {
@@ -3048,6 +3079,7 @@ namespace MultiProcessorSimulator
                                         if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 1] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 3] == 0)//Si ninuna otra cache lo tiene
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//La pongo Uncached
                                         Monitor.Exit(Simulador.directorioP1);
+                                        volverAEmpezar = false;
                                     }
                                     else//No se puede bloquear
                                     {
@@ -3087,6 +3119,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 16; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP0);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -3094,13 +3127,16 @@ namespace MultiProcessorSimulator
                                                         Simulador.reloj++;
                                                         cicloActual++;
                                                         Simulador.barrera.SignalAndWait();
-                                                        //Monitor.Exit(Simulador.cacheDatosN0);
                                                         Monitor.Exit(Simulador.cacheDatosN1);
-                                                        //Monitor.Exit(Simulador.directorioP0);
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.directorioP0);
                                                         volverAEmpezar = true;
                                                     }
-                                                    Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
-                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    if(!volverAEmpezar)
+                                                    {
+                                                        Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                    }
                                                 }
                                                 else//No lo puedo bloquear
                                                 {
@@ -3113,7 +3149,7 @@ namespace MultiProcessorSimulator
                                                     volverAEmpezar = true;
                                                 }
                                             }
-                                            else //Esta modificado en N2
+                                            else if(Simulador.directorioP0[numeroBloque, 3] == 1) //Esta modificado en N2
                                             {
                                                 if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloque la cache que lo tiene
                                                 {
@@ -3128,6 +3164,7 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 40; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP0);
+                                                        volverAEmpezar = false;
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -3136,13 +3173,16 @@ namespace MultiProcessorSimulator
                                                         cicloActual++;
                                                         Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.cacheDatosN1);
-                                                       // Monitor.Exit(Simulador.cacheDatosN2);
-                                                        //Monitor.Exit(Simulador.directorioP0);
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Monitor.Exit(Simulador.directorioP0);
                                                         volverAEmpezar = true;
                                                     }
 
-                                                    Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
-                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    if(!volverAEmpezar)
+                                                    {
+                                                        Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                    }
                                                 }
                                                 else//No lo puedo bloquear
                                                 {
@@ -3151,7 +3191,7 @@ namespace MultiProcessorSimulator
                                                     cicloActual++;
                                                     Simulador.barrera.SignalAndWait();
                                                     Monitor.Exit(Simulador.cacheDatosN1);
-                                                    //Monitor.Exit(Simulador.directorioP0);
+                                                    Monitor.Exit(Simulador.directorioP0);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -3164,6 +3204,8 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N0
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N0
+                                                    volverAEmpezar = false;
+
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -3171,7 +3213,7 @@ namespace MultiProcessorSimulator
                                                     Simulador.reloj++;
                                                     cicloActual++;
                                                     Monitor.Exit(Simulador.cacheDatosN1);
-                                                    //Monitor.Exit(Simulador.directorioP0);
+                                                    Monitor.Exit(Simulador.directorioP0);
                                                     Simulador.barrera.SignalAndWait();
                                                     volverAEmpezar = true;
                                                 }
@@ -3182,6 +3224,8 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                    volverAEmpezar = false;
+
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -3189,7 +3233,7 @@ namespace MultiProcessorSimulator
                                                     Simulador.reloj++;
                                                     cicloActual++;
                                                     Monitor.Exit(Simulador.cacheDatosN1);
-                                                    //Monitor.Exit(Simulador.directorioP0);
+                                                    Monitor.Exit(Simulador.directorioP0);
                                                     Simulador.barrera.SignalAndWait();
                                                     volverAEmpezar = true;
                                                 }
@@ -3206,11 +3250,14 @@ namespace MultiProcessorSimulator
                                             for (int i = 0; i < 16; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Monitor.Exit(Simulador.memCompartidaP0);
+                                            volverAEmpezar = false;
+
                                         }
                                         else//No se puede bloquear
                                         {
                                             terminado = false;
                                             Monitor.Exit(Simulador.cacheDatosN1);
+                                            Monitor.Exit(Simulador.directorioP0);
                                             Simulador.reloj++;
                                             cicloActual++;
                                             Simulador.barrera.SignalAndWait();
@@ -3222,8 +3269,9 @@ namespace MultiProcessorSimulator
                                             Simulador.directorioP0[numeroBloque, 1] = 0; //Indico que esta en cache del N0
                                             Simulador.directorioP0[numeroBloque, 2] = 1; //Indico que esta en cache del N1
                                             Simulador.directorioP0[numeroBloque, 3] = 0;//Indico que esta en cache del N2
-                                            terminado = true;
                                             Monitor.Exit(Simulador.directorioP0);
+                                            terminado = true;
+
                                         }
                                         
                                     }
@@ -3262,6 +3310,8 @@ namespace MultiProcessorSimulator
                                                         for (int i = 0; i < 40; i++)
                                                             Simulador.barrera.SignalAndWait();
                                                         Monitor.Exit(Simulador.memCompartidaP1);
+                                                        volverAEmpezar = false;
+
                                                     }
                                                     else//No puedo bloquear
                                                     {
@@ -3274,8 +3324,12 @@ namespace MultiProcessorSimulator
                                                         Simulador.barrera.SignalAndWait();
                                                         volverAEmpezar = true;
                                                     }
-                                                    Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
-                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    if(!volverAEmpezar)
+                                                    {
+                                                        
+                                                            Simulador.cacheDatosN0[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                            Monitor.Exit(Simulador.cacheDatosN0);
+                                                    }
                                                 }
                                                 else//No lo puedo bloquear
                                                 {
@@ -3316,9 +3370,11 @@ namespace MultiProcessorSimulator
                                                         Simulador.barrera.SignalAndWait();
                                                         volverAEmpezar = true;
                                                     }
-
-                                                    Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
-                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    if(!volverAEmpezar)
+                                                    {
+                                                        Simulador.cacheDatosN2[posCache, 1] = 0;//Coloco invalido bloque en cache
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                    }
                                                 }
                                                 else//No lo puedo bloquear
                                                 {
@@ -3340,6 +3396,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN0[posCache, 1] = 0; //Pongo invalido en cache N1
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero cache N1
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -3358,6 +3415,7 @@ namespace MultiProcessorSimulator
                                                 {
                                                     Simulador.cacheDatosN2[posCache, 1] = 0; //Pongo invalido en cache N2
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero cache N1
+                                                    volverAEmpezar = false;
                                                 }
                                                 else//No se puede bloquear
                                                 {
@@ -3382,6 +3440,7 @@ namespace MultiProcessorSimulator
                                             for (int i = 0; i < 40; i++)
                                                 Simulador.barrera.SignalAndWait();
                                             Monitor.Exit(Simulador.memCompartidaP1);
+                                            volverAEmpezar = false;
                                         }
                                         else//No se puede bloquear
                                         {
@@ -3445,10 +3504,719 @@ namespace MultiProcessorSimulator
 
 
             //Console.WriteLine("Instrucción SW ejecutada en el contexto ");
-        }
+        }*/
         /// <summary>
         /// Ejecuta la instrucción FIN
         /// </summary>
+        
+        private void instruccionSW()
+        {
+            int numeroBloque = obtenerNumBloque();
+            int numPalabra = obtenerNumPalabra();
+            int posCache = obtenerPosCache(numeroBloque);
+            int numProcesadorBloque = numDirectorio(numeroBloque);
+
+            bool terminado = false;
+
+            bool volverEmpezar = false;
+
+            if(numNucleo == 0)
+            {
+                while (!terminado)
+                {
+                    if (Monitor.TryEnter(Simulador.cacheDatosN0))
+                    {
+                        if (bloqueEnCache(posCache, numeroBloque))//Acierto
+                        {
+                            if (Simulador.cacheDatosN0[posCache, 1] == 2)
+                            {
+                                terminado = true;
+                            }
+                            else if (Simulador.cacheDatosN0[posCache, 1] == 1)
+                            {
+                                if (numeroBloque < 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP0[numeroBloque, 2] == 0)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                            {
+                                                Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                volverEmpezar = false;
+                                            }
+                                            else
+                                            {
+                                                terminado = false;
+                                                volverEmpezar = true;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else if (Simulador.directorioP0[numeroBloque, 3] == 0)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                Monitor.Exit(Simulador.cacheDatosN2);
+                                                volverEmpezar = false;
+                                            }
+                                            else
+                                            {
+                                                terminado = false;
+                                                volverEmpezar = true;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            volverEmpezar = false;
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            Simulador.directorioP0[numeroBloque, 0] = 2;
+                                            Simulador.directorioP0[numeroBloque, 1] = 0;
+                                            Simulador.directorioP0[numeroBloque, 2] = 0;
+                                            Simulador.directorioP0[numeroBloque, 3] = 0;
+                                            Monitor.Exit(Simulador.directorioP0);
+                                            volverEmpezar = false;
+                                            terminado = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else if (numeroBloque >= 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))
+                                    {
+                                        Simulador.reloj += 5;
+                                        cicloActual += 5;
+                                        for (int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP1[numeroBloque-16, 2] == 0)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                            {
+                                                Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                Monitor.Exit(Simulador.cacheDatosN1);
+                                                volverEmpezar = false;
+                                            }
+                                            else
+                                            {
+                                                terminado = false;
+                                                volverEmpezar = true;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else if (Simulador.directorioP1[numeroBloque-16, 3] == 0)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                            {
+                                                Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                Monitor.Exit(Simulador.cacheDatosN2);
+                                                volverEmpezar = false;
+                                            }
+                                            else
+                                            {
+                                                terminado = false;
+                                                volverEmpezar = true;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            volverEmpezar = false;
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            Simulador.directorioP1[numeroBloque-16, 0] = 2;
+                                            Simulador.directorioP1[numeroBloque-16, 1] = 0;
+                                            Simulador.directorioP1[numeroBloque-16, 2] = 0;
+                                            Simulador.directorioP1[numeroBloque-16, 3] = 0;
+                                            Monitor.Exit(Simulador.directorioP1);
+                                            volverEmpezar = false;
+                                            terminado = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                        }
+                        else//Fallo
+                        {
+                            if (Simulador.cacheDatosN0[posCache,1] == 2)//Victima modificada
+                            {
+                                if(Simulador.cacheDatosN0[posCache, 0] < 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                        {
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            guardarAMemoria(0, 0, Simulador.cacheDatosN0[posCache, 0], posCache);
+                                            Simulador.reloj += 16;
+                                            cicloActual += 16;
+                                            for (int i = 0; i < 16; i++)
+                                                Simulador.barrera.SignalAndWait();
+                                            Monitor.Exit(Simulador.memCompartidaP0);
+                                            volverEmpezar = false;
+                                        }
+                                        else
+                                        {
+                                            volverEmpezar = true;
+                                            terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN0);
+                                            Monitor.Exit(Simulador.directorioP0);
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            Simulador.cacheDatosN0[posCache, 1] = 0;
+                                            Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;
+                                            Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;
+                                            Monitor.Exit(Simulador.directorioP0);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else if(Simulador.cacheDatosN0[posCache, 0] >= 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))
+                                    {
+                                        Simulador.reloj+=5;
+                                        cicloActual+=5;
+                                        for(int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        if (Monitor.TryEnter(Simulador.memCompartidaP1))
+                                        {
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            guardarAMemoria(0, 1, Simulador.cacheDatosN0[posCache, 0], posCache);
+                                            Simulador.reloj += 40;
+                                            cicloActual += 40;
+                                            for (int i = 0; i < 40; i++)
+                                                Simulador.barrera.SignalAndWait();
+                                            Monitor.Exit(Simulador.memCompartidaP1);
+                                            volverEmpezar = false;
+                                        }
+                                        else
+                                        {
+                                            volverEmpezar = true;
+                                            terminado = false;
+                                            Monitor.Exit(Simulador.cacheDatosN0);
+                                            Monitor.Exit(Simulador.directorioP1);
+                                            Simulador.reloj++;
+                                            cicloActual++;
+                                            Simulador.barrera.SignalAndWait();
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            Simulador.cacheDatosN0[posCache, 1] = 0;
+                                            Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 0] = 0;
+                                            Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 1] = 0;
+                                            Monitor.Exit(Simulador.directorioP1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                            else if (Simulador.cacheDatosN0[posCache, 1] == 1)//Victima compartida
+                            {
+                                if(Simulador.cacheDatosN0[posCache, 0] < 16)//Voy a directorio de P0
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0)) 
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;
+                                        if(Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)
+                                        {
+                                            Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;
+                                        }
+                                        Monitor.Exit(Simulador.directorioP0);
+                                        volverEmpezar = false;
+
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else if(Simulador.cacheDatosN0[posCache, 0] >= 16)//Voy a directorio de P1
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))
+                                    {
+                                        Simulador.reloj+=5;
+                                        cicloActual+=5;
+                                        for(int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 1] = 0;
+                                        if (Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 3] == 0)
+                                        {
+                                            Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0]-16, 0] = 0;
+                                        }
+                                        Monitor.Exit(Simulador.directorioP1);
+                                        volverEmpezar = false;
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                            if (!volverEmpezar)//Ya me encargue de la victima
+                            {
+                                if(numeroBloque < 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP0))
+                                    {
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP0[numeroBloque,0] == 2)
+                                        {
+                                            if (Simulador.directorioP0[numeroBloque, 2] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                                {
+                                                    if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                                    {
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                        guardarAMemoria(1,0,numeroBloque,posCache);
+                                                        Simulador.reloj+=16;
+                                                        cicloActual+=16;
+                                                        for(int i = 0; i < 16; i++)
+                                                            Simulador.barrera.SignalAndWait();
+                                                        Monitor.Exit(Simulador.memCompartidaP0);
+                                                        Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Simulador.directorioP0[numeroBloque, 2] = 0;
+                                                        volverEmpezar = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        volverEmpezar = true;
+                                                        terminado = false;
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Monitor.Exit(Simulador.directorioP0);
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                            else if (Simulador.directorioP0[numeroBloque, 3] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                                {
+                                                    if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                                    {
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                        guardarAMemoria(2, 0, numeroBloque, posCache);
+                                                        Simulador.reloj += 40;
+                                                        cicloActual += 40;
+                                                        for (int i = 0; i < 40; i++)
+                                                            Simulador.barrera.SignalAndWait();
+                                                        Monitor.Exit(Simulador.memCompartidaP0);
+                                                        Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Simulador.directorioP0[numeroBloque, 2] = 0;
+                                                        volverEmpezar = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        volverEmpezar = true;
+                                                        terminado = false;
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Monitor.Exit(Simulador.directorioP0);
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                        }
+                                        else if (Simulador.directorioP0[numeroBloque, 0] == 1)
+                                        {
+                                            if (Simulador.directorioP0[numeroBloque, 2] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                                {
+                                                        Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Simulador.directorioP0[numeroBloque, 2] = 0;
+                                                        volverEmpezar = false;
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                            if (Simulador.directorioP0[numeroBloque, 3] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                                {
+                                                    Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    Simulador.directorioP0[numeroBloque, 2] = 0;
+                                                    volverEmpezar = false;
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP0);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))
+                                            {
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                                guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
+                                                Simulador.reloj+=16;
+                                                cicloActual+=16;
+                                                for(int i = 0; i < 16; i++)
+                                                    Simulador.barrera.SignalAndWait();
+                                                Monitor.Exit(Simulador.memCompartidaP0);
+                                                Simulador.directorioP0[numeroBloque, 0] = 2;
+                                                Simulador.directorioP0[numeroBloque, 1] = 1;
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                volverEmpezar = false;
+                                                terminado = true;
+                                            }
+                                            else
+                                            {
+                                                volverEmpezar = true;
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP0);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                                else if(numeroBloque >= 16)
+                                {
+                                    if (Monitor.TryEnter(Simulador.directorioP1))
+                                    {
+                                        Simulador.reloj+=5;
+                                        cicloActual+=5;
+                                        for(int i = 0; i < 5; i++)
+                                            Simulador.barrera.SignalAndWait();
+                                        if (Simulador.directorioP1[numeroBloque-16, 0] == 2)
+                                        {
+                                            if (Simulador.directorioP1[numeroBloque - 16, 2] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                                {
+                                                    if (Monitor.TryEnter(Simulador.memCompartidaP1))
+                                                    {
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                        guardarAMemoria(1, 1, numeroBloque, posCache);
+                                                        Simulador.reloj += 40;
+                                                        cicloActual += 40;
+                                                        for (int i = 0; i < 40; i++)
+                                                            Simulador.barrera.SignalAndWait();
+                                                        Monitor.Exit(Simulador.memCompartidaP1);
+                                                        Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Simulador.directorioP1[numeroBloque - 16, 2] = 0;
+                                                        volverEmpezar = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        volverEmpezar = true;
+                                                        terminado = false;
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.cacheDatosN1);
+                                                        Monitor.Exit(Simulador.directorioP1);
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                            else if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                                {
+                                                    if (Monitor.TryEnter(Simulador.memCompartidaP1))
+                                                    {
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                        guardarAMemoria(2, 1, numeroBloque, posCache);
+                                                        Simulador.reloj += 16;
+                                                        cicloActual += 16;
+                                                        for (int i = 0; i < 16; i++)
+                                                            Simulador.barrera.SignalAndWait();
+                                                        Monitor.Exit(Simulador.memCompartidaP1);
+                                                        Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Simulador.directorioP1[numeroBloque - 16, 2] = 0;
+                                                        volverEmpezar = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        volverEmpezar = true;
+                                                        terminado = false;
+                                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                                        Monitor.Exit(Simulador.cacheDatosN2);
+                                                        Monitor.Exit(Simulador.directorioP1);
+                                                        Simulador.reloj++;
+                                                        cicloActual++;
+                                                        Simulador.barrera.SignalAndWait();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                        }
+                                        else if (Simulador.directorioP1[numeroBloque - 16, 0] == 1)
+                                        {
+                                            if (Simulador.directorioP1[numeroBloque - 16, 2] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN1))
+                                                {
+                                                    Simulador.cacheDatosN1[posCache, 1] = 0;
+                                                    Monitor.Exit(Simulador.cacheDatosN1);
+                                                    Simulador.directorioP1[numeroBloque - 16, 2] = 0;
+                                                    volverEmpezar = false;
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                            if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
+                                            {
+                                                if (Monitor.TryEnter(Simulador.cacheDatosN2))
+                                                {
+                                                    Simulador.cacheDatosN2[posCache, 1] = 0;
+                                                    Monitor.Exit(Simulador.cacheDatosN2);
+                                                    Simulador.directorioP1[numeroBloque - 16, 2] = 0;
+                                                    volverEmpezar = false;
+                                                }
+                                                else
+                                                {
+                                                    volverEmpezar = true;
+                                                    terminado = false;
+                                                    Monitor.Exit(Simulador.cacheDatosN0);
+                                                    Monitor.Exit(Simulador.directorioP1);
+                                                    Simulador.reloj++;
+                                                    cicloActual++;
+                                                    Simulador.barrera.SignalAndWait();
+                                                }
+                                            }
+                                        }
+                                        if (!volverEmpezar)
+                                        {
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))
+                                            {
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                                guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
+                                                Simulador.reloj += 40;
+                                                cicloActual += 40;
+                                                for (int i = 0; i < 40; i++)
+                                                    Simulador.barrera.SignalAndWait();
+                                                Monitor.Exit(Simulador.memCompartidaP1);
+                                                Simulador.directorioP1[numeroBloque - 16, 0] = 2;
+                                                Simulador.directorioP1[numeroBloque - 16,1] = 1;
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                volverEmpezar = false;
+                                                terminado = true;
+                                            }
+                                            else
+                                            {
+                                                volverEmpezar = true;
+                                                terminado = false;
+                                                Monitor.Exit(Simulador.cacheDatosN0);
+                                                Monitor.Exit(Simulador.directorioP1);
+                                                Simulador.reloj++;
+                                                cicloActual++;
+                                                Simulador.barrera.SignalAndWait();
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        volverEmpezar = true;
+                                        terminado = false;
+                                        Monitor.Exit(Simulador.cacheDatosN0);
+                                        Simulador.reloj++;
+                                        cicloActual++;
+                                        Simulador.barrera.SignalAndWait();
+                                    }
+                                }
+                            }
+                        }
+                        if (terminado)
+                        {
+                            Simulador.cacheDatosN0[posCache, numPalabra + 2] = registros[IR[2]];
+                            Monitor.Exit(Simulador.cacheDatosN0);
+                        }
+                        else
+                        {
+                            terminado = false;
+                        }
+                    }
+                    else
+                    {
+                        volverEmpezar = true;
+                        terminado = false;
+                        Simulador.reloj++;
+                        cicloActual++;
+                        Simulador.barrera.SignalAndWait();
+                    }
+                }
+            }
+        }
+
         private void instruccionFIN()
         {
             if (numProc == 0)
