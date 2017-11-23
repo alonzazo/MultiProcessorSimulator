@@ -16,6 +16,7 @@ namespace MultiProcessorSimulator
         private int PC;
         private int[] IR;
         private int[] registros;
+        private int quantumAux;
         
         private String logExecution;
 
@@ -28,6 +29,7 @@ namespace MultiProcessorSimulator
             registros = new int[32];
             logExecution = "Ejecuciones del núcleo " + numNucleo + "\n";
             PC = contexto[0];
+            quantumAux = Simulador.quantum;
             //Cargamos el primer contexto
             for (int i = 1; i < 33; i++) {
                 registros[i-1] = contexto[i];
@@ -47,7 +49,7 @@ namespace MultiProcessorSimulator
                 int numInstruccion;
                 bool flag = true;
                 while (flag) {
-                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP0[contextoActual][33] == -1)
+                    if ((Simulador.quantum > 0) && Simulador.contextoP0[contextoActual][33] == -1)
                     {
                         //Solicitamos bus de memoria
                         /*lock (Simulador.memInstruccionesP0)
@@ -122,50 +124,62 @@ namespace MultiProcessorSimulator
                           //Caso del DADDI
                             case 8:
                                 instruccionDADDI();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DADD
                             case 32:
                                 instruccionDADD();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DSUB
                             case 34:
                                 instruccionDSUB();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DMUL
                             case 12:
                                 instruccionDMUL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DDIV
                             case 14:
                                 instruccionDDIV();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BEQZ
                             case 4:
                                 instruccionBEQZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BNEZ
                             case 5:
                                 instruccionBNEZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JAL
                             case 3:
                                 instruccionJAL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JR
                             case 2:
                                 instruccionJR();
+                                Simulador.quantum--;
                                 break;
                             //Caso del LW
                             case 35:
                                 instruccionLW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
                                 instruccionSW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del FIN
                             case 63:
                                 instruccionFIN();
+                                Simulador.quantum--;
                                 lock (Simulador.contextoP0)
                                 {
                                     Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
@@ -240,7 +254,11 @@ namespace MultiProcessorSimulator
                                 }
                                 Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
                                 Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
+                                if(Simulador.quantum <= 0)
+                                {
+                                    Simulador.quantum = quantumAux;
+                                }
+                                
                                 Simulador.printContexto();
                             }
                             //cicloActual++;
@@ -277,7 +295,7 @@ namespace MultiProcessorSimulator
                 int numInstruccion;
                 while (flag)
                 {
-                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP1[contextoActual][33] == -1)
+                    if ((Simulador.quantum > 0) && Simulador.contextoP1[contextoActual][33] == -1)
                     {
                         lock (Simulador.contextoP1)
                         {
@@ -327,50 +345,62 @@ namespace MultiProcessorSimulator
                           //Caso del DADDI
                             case 8:
                                 instruccionDADDI();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DADD
                             case 32:
                                 instruccionDADD();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DSUB
                             case 34:
                                 instruccionDSUB();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DMUL
                             case 12:
                                 instruccionDMUL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DDIV
                             case 14:
                                 instruccionDDIV();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BEQZ
                             case 4:
                                 instruccionBEQZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BNEZ
                             case 5:
                                 instruccionBNEZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JAL
                             case 3:
                                 instruccionJAL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JR
                             case 2:
                                 instruccionJR();
+                                Simulador.quantum--;
                                 break;
                             //Caso del LW
                             case 35:
                                 instruccionLW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
                                 instruccionSW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del FIN
                             case 63:
                                 instruccionFIN();
+                                Simulador.quantum--;
                                 lock (Simulador.contextoP1)
                                 {
                                     Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
@@ -451,7 +481,10 @@ namespace MultiProcessorSimulator
                                 }
                                 Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
                                 Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
+                                if (Simulador.quantum <= 0)
+                                {
+                                    Simulador.quantum = quantumAux;
+                                }
                                 Simulador.printContexto();
                             }
                             //cicloActual++;
