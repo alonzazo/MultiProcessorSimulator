@@ -96,9 +96,9 @@ namespace MultiProcessorSimulator
             memInstruccionesP1 = new int[256]; // size = 256
             //Inicializo la memoria compartida
             memCompartidaP0 = new int[64]; // size = 64
-            memCompartidaP0 = Enumerable.Repeat(0,64).ToArray();
+            memCompartidaP0 = Enumerable.Repeat(1,64).ToArray();
             memCompartidaP1 = new int[32]; // size = 32
-            memCompartidaP1 = Enumerable.Repeat(0,32).ToArray();
+            memCompartidaP1 = Enumerable.Repeat(1,32).ToArray();
             //Inicializo registros
             registrosN0 = new int[32];
             registrosN1 = new int[32];
@@ -272,7 +272,7 @@ namespace MultiProcessorSimulator
             for (int i = 0; i< hilillos.Length; ++i)
             {
                 contexto[i][0] = direccion;
-                contexto[i][33] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
+                contexto[i][38] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
                 contexto[i][34] = -1; // Indica que estan en desuso
                 contexto[i][37] = -1; //Indica que aun no ha iniciado el hilillo
                 lines = System.IO.File.ReadAllLines(hilillos[i]);
@@ -388,6 +388,7 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
+                    //Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
                 }
@@ -408,6 +409,7 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
+                    //Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP1[i][j]);
                     Console.Write(" ");
                 }
