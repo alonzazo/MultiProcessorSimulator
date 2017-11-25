@@ -81,9 +81,12 @@ namespace MultiProcessorSimulator
             bool flag = true;
             while (barrera.ParticipantCount > 1) {
                 if (reloj % 100 == 0 && modo == 1) {                        //Se verifica si es el ciclo oportuno y si está en el modo correcto
-                    Console.Write("\n");
-                    Console.WriteLine("Digite enter para continuar");
-                    Console.Read();
+                    lock (ConsoleWriterLock)
+                    {
+                        Console.Write("\n");
+                        Console.WriteLine("Digite enter para continuar");
+                        Console.ReadKey();
+                    }
                 }
                 //Interlocked.Increment(ref reloj);
                 
