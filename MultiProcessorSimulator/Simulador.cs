@@ -40,6 +40,7 @@ namespace MultiProcessorSimulator
         public static Barrier barrera;
         private int cicloActual;
 
+
         public void correr()
         {
             string [] hilosP0 = solicitarHilos(0);
@@ -62,17 +63,17 @@ namespace MultiProcessorSimulator
 
             //Llamado de los nucleos
             contextoP0[0][34] = 0;
-            Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0);
+            Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0, modo);
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
 
             contextoP0[1][34] = 0;
-            Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
+            Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1, modo);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
 
             contextoP1[0][34] = 0;
-            Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
+            Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0, modo);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
             nucleo2Thread.Start();
 
@@ -87,6 +88,10 @@ namespace MultiProcessorSimulator
             //finalizar
             finalizar(hilosP0, hilosP1);
             Console.Read();
+            if(modo == 1)
+            {
+                Console.Read();
+            }
         }
 
         public void inicializar()
@@ -96,9 +101,9 @@ namespace MultiProcessorSimulator
             memInstruccionesP1 = new int[256]; // size = 256
             //Inicializo la memoria compartida
             memCompartidaP0 = new int[64]; // size = 64
-            memCompartidaP0 = Enumerable.Repeat(1,64).ToArray();
+            memCompartidaP0 = Enumerable.Repeat(0,64).ToArray();
             memCompartidaP1 = new int[32]; // size = 32
-            memCompartidaP1 = Enumerable.Repeat(1,32).ToArray();
+            memCompartidaP1 = Enumerable.Repeat(0,32).ToArray();
             //Inicializo registros
             registrosN0 = new int[32];
             registrosN1 = new int[32];
