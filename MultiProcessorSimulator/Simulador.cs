@@ -80,8 +80,16 @@ namespace MultiProcessorSimulator
             //Sincronizador de ciclos
             bool flag = true;
             while (barrera.ParticipantCount > 1) {
+                if (reloj % 100 == 0 && modo == 1) {                        //Se verifica si es el ciclo oportuno y si está en el modo correcto
+                    Console.Write("\n");
+                    Console.WriteLine("Digite enter para continuar");
+                    Console.Read();
+                }
+                //Interlocked.Increment(ref reloj);
+                
                 barrera.SignalAndWait();
                 cicloActual++;
+                reloj++;
             }
             barrera.SignalAndWait(); // Barrera de finalización
 
