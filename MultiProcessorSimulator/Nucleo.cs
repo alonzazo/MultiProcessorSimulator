@@ -215,11 +215,16 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                         }
                                         Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                        lock (Simulador.ConsoleWriterLock)
+                                        {
+                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
 
-                                        Simulador.printContexto();
+                                            Simulador.printContexto();
+                                        }
+                                        
                                     }
-                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    lock (Simulador.ConsoleWriterLock)
+                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -265,13 +270,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                 }
                                 Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                lock (Simulador.ConsoleWriterLock)
+                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-
-                                Simulador.printContexto();
+                                lock (Simulador.ConsoleWriterLock)
+                                    Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -283,8 +289,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-
-                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    lock (Simulador.ConsoleWriterLock)
+                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
                     lock (Simulador.contextoP0)
                     {
@@ -444,11 +450,15 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                         }
                                         Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
-                                        Simulador.printContexto();
+                                        lock (Simulador.ConsoleWriterLock)
+                                        {
+                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                            Simulador.printContexto();
+                                        }
+                                            
                                     }
-                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    lock (Simulador.ConsoleWriterLock)
+                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -496,12 +506,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                 }
                                 Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                lock (Simulador.ConsoleWriterLock)
+                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-                                Simulador.printContexto();
+                                lock (Simulador.ConsoleWriterLock)
+                                    Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -510,8 +522,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-
-                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    lock (Simulador.ConsoleWriterLock)
+                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
 
                     lock (Simulador.contextoP1)
                     {
@@ -4296,9 +4308,13 @@ namespace MultiProcessorSimulator
 
         public void modoLento()
         {
-            Console.Write("\n");
-            Console.Write("Digite enter para continuar");
-            Console.Read();
+            lock (Simulador.ConsoleWriterLock)
+            {
+                Console.Write("\n");
+                Console.Write("Digite enter para continuar");
+                Console.Read();
+            }
+                
         }
     }
 }
