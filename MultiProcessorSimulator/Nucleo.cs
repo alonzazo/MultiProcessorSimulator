@@ -16,10 +16,14 @@ namespace MultiProcessorSimulator
         private int PC;
         private int[] IR;
         private int[] registros;
-        
+        private int quantumAux;
+        private int modo;
+
         private String logExecution;
 
-        public Nucleo(int numProc, int numNucleo, int[] contexto, int numContexto) {
+        public Nucleo(int numProc, int numNucleo, int[] contexto, int numContexto, int modo)
+        {
+            this.modo = modo;
             this.numProc = numProc;
             this.numNucleo = numNucleo;
             cicloActual = 0;
@@ -28,26 +32,31 @@ namespace MultiProcessorSimulator
             registros = new int[32];
             logExecution = "Ejecuciones del núcleo " + numNucleo + "\n";
             PC = contexto[0];
+            quantumAux = Simulador.quantum;
             //Cargamos el primer contexto
-            for (int i = 1; i < 33; i++) {
-                registros[i-1] = contexto[i];
+            for (int i = 1; i < 33; i++)
+            {
+                registros[i - 1] = contexto[i];
             }
         }
 
-        
+
         /// <summary>
         /// Inicia la corrida de la lógica de un núcleo.
         /// </summary>
-        public void run() {
-            if (numProc == 0) {
+        public void run()
+        {
+            if (numProc == 0)
+            {
 
-               
+
                 int numBloque;
                 int posCache;
                 int numInstruccion;
                 bool flag = true;
-                while (flag) {
-                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP0[contextoActual][33] == -1)
+                while (flag)
+                {
+                    if ((Simulador.quantum > 0) && Simulador.contextoP0[contextoActual][38] == -1)
                     {
                         //Solicitamos bus de memoria
                         /*lock (Simulador.memInstruccionesP0)
@@ -60,7 +69,7 @@ namespace MultiProcessorSimulator
                         }*/
                         lock (Simulador.contextoP0)
                         {
-                            if(Simulador.contextoP0[contextoActual][37] == -1)
+                            if (Simulador.contextoP0[contextoActual][37] == -1)
                             {
                                 Simulador.contextoP0[contextoActual][37] = 0;
                                 Simulador.contextoP0[contextoActual][36] = Simulador.reloj;
@@ -122,50 +131,62 @@ namespace MultiProcessorSimulator
                           //Caso del DADDI
                             case 8:
                                 instruccionDADDI();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DADD
                             case 32:
                                 instruccionDADD();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DSUB
                             case 34:
                                 instruccionDSUB();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DMUL
                             case 12:
                                 instruccionDMUL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DDIV
                             case 14:
                                 instruccionDDIV();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BEQZ
                             case 4:
                                 instruccionBEQZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BNEZ
                             case 5:
                                 instruccionBNEZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JAL
                             case 3:
                                 instruccionJAL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JR
                             case 2:
                                 instruccionJR();
+                                Simulador.quantum--;
                                 break;
                             //Caso del LW
                             case 35:
                                 instruccionLW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
                                 instruccionSW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del FIN
                             case 63:
                                 instruccionFIN();
+                                Simulador.quantum--;
                                 lock (Simulador.contextoP0)
                                 {
                                     Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
@@ -180,12 +201,12 @@ namespace MultiProcessorSimulator
                                     {
                                         contextoActual = (contextoActual + 1) % 7;
                                         if (Simulador.contextoP0[contextoActual][34] == -1 &&           //Está en desuso?
-                                            Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
+                                            Simulador.contextoP0[contextoActual][38] == -1)             //Ya terminó?
                                         {
                                             break;
                                         }
                                     }
-                                    if (Simulador.contextoP0[contextoActual][33] == -1)
+                                    if (Simulador.contextoP0[contextoActual][38] == -1)
                                     {               //Verificar si el contextoActual ya terminó
                                                     //Cargamos el nuevo contexto
                                         PC = Simulador.contextoP0[contextoActual][0];
@@ -194,24 +215,31 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                         }
                                         Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                        lock (Simulador.ConsoleWriterLock)
+                                        {
+                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
 
-                                        Simulador.printContexto();
+                                            Simulador.printContexto();
+                                        }
+                                        
                                     }
-                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    lock (Simulador.ConsoleWriterLock)
+                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
                             default:
                                 throw new Exception("ERROR: Instruccion " + IR[0] + " no identificada.");
                         }
-                        //Simulador.barrera.SignalAndWait();
-                        //cicloActual++;
+                        //barreraNucleo(1);
+                        //
                         //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     }
-                    else {
-                        lock (Simulador.contextoP0) {
-                            if (Simulador.contextoP0[contextoActual][33] == -1 )
+                    else
+                    {
+                        lock (Simulador.contextoP0)
+                        {
+                            if (Simulador.contextoP0[contextoActual][38] == -1)
                             {
                                 Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
                                 for (int i = 0; i < registros.Length; i++)
@@ -219,11 +247,13 @@ namespace MultiProcessorSimulator
                                     Simulador.contextoP0[contextoActual][i + 1] = registros[i];
                                 }
                                 Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
-
+                                Simulador.contextoP0[contextoActual][33] += cicloActual;
+                                cicloActual = 0;
                             }
 
                             //Buscamos un contexto en desuso
-                            for (int i = 0; i < Simulador.contextoP0.Length; i++) {
+                            for (int i = 0; i < Simulador.contextoP0.Length; i++)
+                            {
                                 contextoActual = (contextoActual + 1) % 7;
                                 if (Simulador.contextoP0[contextoActual][34] == -1 &&           //Está en desuso?
                                     Simulador.contextoP0[contextoActual][33] == -1)             //Ya terminó?
@@ -231,7 +261,8 @@ namespace MultiProcessorSimulator
                                     break;
                                 }
                             }
-                            if (Simulador.contextoP0[contextoActual][33] == -1) {               //Verificar si el contextoActual ya terminó
+                            if (Simulador.contextoP0[contextoActual][38] == -1)
+                            {               //Verificar si el contextoActual ya terminó
                                 //Cargamos el nuevo contexto
                                 PC = Simulador.contextoP0[contextoActual][0];
                                 for (int i = 1; i < 33; i++)
@@ -239,29 +270,34 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                 }
                                 Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
-                                Simulador.printContexto();
+                                lock (Simulador.ConsoleWriterLock)
+                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                if (Simulador.quantum <= 0)
+                                {
+                                    Simulador.quantum = quantumAux;
+                                }
+                                lock (Simulador.ConsoleWriterLock)
+                                    Simulador.printContexto();
                             }
-                            //cicloActual++;
+                            //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                         }
-                        
+
 
                     }
 
 
-                    Simulador.barrera.SignalAndWait();
-                    Simulador.reloj++;
-                    cicloActual++;
-                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    barreraNucleo(1);
+
+                    lock (Simulador.ConsoleWriterLock)
+                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
                     lock (Simulador.contextoP0)
                     {
                         bool continuar = false;
                         for (int i = 0; i < 7; i++)
                         {
-                            if (Simulador.contextoP0[i][33] == -1)
+                            if (Simulador.contextoP0[i][38] == -1)
                             {
                                 continuar = true;
                                 break;
@@ -270,14 +306,16 @@ namespace MultiProcessorSimulator
                         flag = continuar;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 bool flag = true;
                 int numBloque;
                 int posCache;
                 int numInstruccion;
                 while (flag)
                 {
-                    if ((cicloActual == 0 || cicloActual % Simulador.quantum != 0) && Simulador.contextoP1[contextoActual][33] == -1)
+                    if ((Simulador.quantum > 0) && Simulador.contextoP1[contextoActual][38] == -1)
                     {
                         lock (Simulador.contextoP1)
                         {
@@ -327,50 +365,62 @@ namespace MultiProcessorSimulator
                           //Caso del DADDI
                             case 8:
                                 instruccionDADDI();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DADD
                             case 32:
                                 instruccionDADD();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DSUB
                             case 34:
                                 instruccionDSUB();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DMUL
                             case 12:
                                 instruccionDMUL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del DDIV
                             case 14:
                                 instruccionDDIV();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BEQZ
                             case 4:
                                 instruccionBEQZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del BNEZ
                             case 5:
                                 instruccionBNEZ();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JAL
                             case 3:
                                 instruccionJAL();
+                                Simulador.quantum--;
                                 break;
                             //Caso del JR
                             case 2:
                                 instruccionJR();
+                                Simulador.quantum--;
                                 break;
                             //Caso del LW
                             case 35:
                                 instruccionLW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
                                 instruccionSW();
+                                Simulador.quantum--;
                                 break;
                             //Caso del FIN
                             case 63:
                                 instruccionFIN();
+                                Simulador.quantum--;
                                 lock (Simulador.contextoP1)
                                 {
                                     Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
@@ -386,12 +436,12 @@ namespace MultiProcessorSimulator
                                     {
                                         contextoActual = (contextoActual + 1) % 7;
                                         if (Simulador.contextoP1[contextoActual][34] == -1 ||           //Está en desuso?
-                                            Simulador.contextoP1[contextoActual][33] == -1)             //Ya terminó?
+                                            Simulador.contextoP1[contextoActual][38] == -1)             //Ya terminó?
                                         {
                                             break;
                                         }
                                     }
-                                    if (Simulador.contextoP1[contextoActual][33] == -1)                 //Verificar si el contextoActual ya terminó
+                                    if (Simulador.contextoP1[contextoActual][38] == -1)                 //Verificar si el contextoActual ya terminó
                                     {
                                         //Cargamos el nuevo contexto
                                         PC = Simulador.contextoP1[contextoActual][0];
@@ -400,26 +450,31 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                         }
                                         Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
-                                        Simulador.printContexto();
+                                        lock (Simulador.ConsoleWriterLock)
+                                        {
+                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                            Simulador.printContexto();
+                                        }
+                                            
                                     }
-                                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    lock (Simulador.ConsoleWriterLock)
+                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
                             default:
                                 throw new Exception("ERROR: Instruccion " + IR[0] + " no identificada.");
                         }
-                        //Simulador.barrera.SignalAndWait();
-                        //cicloActual++;
+                        //barreraNucleo(1);
+                        //
                         //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     }
-                
-                    else {
+
+                    else
+                    {
                         lock (Simulador.contextoP1)
                         {
-                            if(Simulador.contextoP1[contextoActual][33] == -1)
+                            if (Simulador.contextoP1[contextoActual][38] == -1)
                             {
                                 Simulador.contextoP1[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
                                 for (int i = 0; i < registros.Length; i++)
@@ -427,7 +482,8 @@ namespace MultiProcessorSimulator
                                     Simulador.contextoP1[contextoActual][i + 1] = registros[i];
                                 }
                                 Simulador.contextoP1[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
-
+                                Simulador.contextoP1[contextoActual][33] += cicloActual;
+                                cicloActual = 0;
                             }
 
 
@@ -436,13 +492,13 @@ namespace MultiProcessorSimulator
                             {
                                 contextoActual = (contextoActual + 1) % 7;
                                 if (Simulador.contextoP1[contextoActual][34] == -1 ||           //Está en desuso?
-                                    Simulador.contextoP1[contextoActual][33] == -1)             //Ya terminó?
+                                    Simulador.contextoP1[contextoActual][38] == -1)             //Ya terminó?
                                 {
                                     break;
                                 }
                             }
-                            if (Simulador.contextoP1[contextoActual][33] == -1)                 //Verificar si el contextoActual ya terminó
-                            {               
+                            if (Simulador.contextoP1[contextoActual][38] == -1)                 //Verificar si el contextoActual ya terminó
+                            {
                                 //Cargamos el nuevo contexto
                                 PC = Simulador.contextoP1[contextoActual][0];
                                 for (int i = 1; i < 33; i++)
@@ -450,25 +506,31 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                 }
                                 Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
-
-                                Simulador.printContexto();
+                                lock (Simulador.ConsoleWriterLock)
+                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                if (Simulador.quantum <= 0)
+                                {
+                                    Simulador.quantum = quantumAux;
+                                }
+                                lock (Simulador.ConsoleWriterLock)
+                                    Simulador.printContexto();
                             }
-                            //cicloActual++;
+                            //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                         }
                     }
 
-                    Simulador.barrera.SignalAndWait();
-                    Simulador.reloj++;
-                    cicloActual++;
-                    Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    barreraNucleo(1);
 
-                    lock (Simulador.contextoP1) {
+                    lock (Simulador.ConsoleWriterLock)
+                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+
+                    lock (Simulador.contextoP1)
+                    {
                         bool continuar = false;
                         for (int i = 0; i < 7; i++)
                         {
-                            if (Simulador.contextoP1[i][33] == -1)
+                            if (Simulador.contextoP1[i][38] == -1)
                             {
                                 continuar = true;
                                 break;
@@ -480,14 +542,15 @@ namespace MultiProcessorSimulator
             }
             Simulador.barrera.RemoveParticipant();
             printLogExecution();
-            
+
 
         }
 
         /// <summary>
         /// Ejecuta la instrucción DADD
         /// </summary>
-        private void instruccionDADD() {
+        private void instruccionDADD()
+        {
             logExecution += "Instrucción DADD ejecutada.\n";
             registros[IR[3]] = registros[IR[1]] + registros[IR[2]];
             //Console.WriteLine("Instrucción DADD ejecutada.");
@@ -542,7 +605,7 @@ namespace MultiProcessorSimulator
         {
             logExecution += "Instrucción BEQZ ejecutada en el contexto " + contextoActual + "\n";
             //Console.WriteLine("Instrucción BEQZ ejecutada en el contexto ");
-            
+
             if (registros[IR[1]] == 0)
             {
                 PC += IR[3] * 4;
@@ -570,7 +633,7 @@ namespace MultiProcessorSimulator
             registros[31] = PC;
             PC += IR[3];
             logExecution += "Instrucción JAL ejecutada en el contexto " + contextoActual + "\n";
-            
+
             //Console.WriteLine("Instrucción JAL ejecutada en el contexto ");
         }
 
@@ -588,7 +651,6 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción LW
         /// </summary>
-        
         private void instruccionLW()
         {
             logExecution += "Instrucción LW ejecutada en el contexto " + contextoActual + "\n";
@@ -618,19 +680,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria 
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
                                             {
-                                                Simulador.reloj += 1;
-                                                cicloActual += 1;//Aumento ciclo por acceder a directorio local
-                                                Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio local
+                                                barreraNucleo(1);
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16; //Aumento el ciclo por guardar en memoria compartida del procesador
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del procesador
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria 
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Pongo 0 el bit del N0
@@ -640,9 +701,9 @@ namespace MultiProcessorSimulator
                                             else//Si no puedo blouear el directorio de la victima
                                             {
                                                 //Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
@@ -652,9 +713,9 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -662,20 +723,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota 
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
                                             {
-                                                Simulador.reloj += 5;
-                                                cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
-                                                for (int i = 0; i < 5; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio remoto
+                                                barreraNucleo(5);
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del otro procesador
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del otro procesador
+                                                barreraNucleo(40);
                                                 //Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
                                                 Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 1] = 0;//Pongo 0 el bit del N0
@@ -685,9 +744,9 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 //Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                 //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
@@ -699,9 +758,9 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -712,9 +771,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -728,9 +787,9 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -738,10 +797,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-                                            Simulador.reloj += 5;
-                                            cicloActual += 5;//Aumento el ciclo por bloquear memoria remota
-                                            for (int i = 0; i < 5; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria remota
+                                            barreraNucleo(5);
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -755,9 +813,9 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
                                             //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -771,21 +829,20 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;//Aumento un ciclo por acceso a directorio local
-                                        Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio local
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;//Aumento 16 por escribir desde memoria local
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria local
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 if (Simulador.directorioP0[numeroBloque, 0] == 0)
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -800,9 +857,9 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 volverAEmpezar = true;
                                             }
 
@@ -815,22 +872,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;//Aumento 16 por escribir desde memoria local
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir desde memoria local
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
@@ -845,9 +901,9 @@ namespace MultiProcessorSimulator
                                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                         //Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                         //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache
@@ -858,9 +914,9 @@ namespace MultiProcessorSimulator
                                                     //Falta regresar a estado anterior
                                                     //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -870,22 +926,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 40 por escribir desde cache remoto
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 40 por escribir desde cache remoto
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
 
@@ -899,9 +954,9 @@ namespace MultiProcessorSimulator
                                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                         //Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                         //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache
@@ -912,9 +967,9 @@ namespace MultiProcessorSimulator
                                                     //Falta regresar a estado anterior
                                                     //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -926,9 +981,9 @@ namespace MultiProcessorSimulator
                                         terminado = false;
                                         //Falta regresar a estado anterior
                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         volverAEmpezar = true;
                                     }
                                 }
@@ -936,22 +991,20 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio remoto
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 0 || Simulador.directorioP1[numeroBloque - 16, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;//Aumento 16 por escribir desde memoria remota
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria remota
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                 if (Simulador.directorioP1[numeroBloque - 16, 0] == 0)
                                                     Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
@@ -966,9 +1019,9 @@ namespace MultiProcessorSimulator
                                                 //Falta regresar a estado anterior
                                                 //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 volverAEmpezar = true;
                                             }
                                         }
@@ -980,22 +1033,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 16 por escribir a memoria remota
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir a memoria remota
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
@@ -1010,9 +1062,9 @@ namespace MultiProcessorSimulator
                                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                         //Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
                                                         //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache
@@ -1023,9 +1075,9 @@ namespace MultiProcessorSimulator
                                                     //Falta regresar a estado anterior
                                                     //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -1035,22 +1087,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;									//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
-                                                        guardarAMemoria(2, 1, numeroBloque, posCache);	//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;								//Aumento 16 por escribir desde cache remoto
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
+                                                        guardarAMemoria(2, 1, numeroBloque, posCache);  //Guardo lo que tiene la cache en memoria
+
+                                                        //Aumento 16 por escribir desde cache remoto
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP1);		//Libero la memoria
                                                         for (int j = 0; j < 6; j++)						//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;	//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;            //Pongo cache en C
 
@@ -1064,9 +1115,9 @@ namespace MultiProcessorSimulator
                                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                         //Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
                                                         //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache
@@ -1077,9 +1128,9 @@ namespace MultiProcessorSimulator
                                                     //Falta regresar a estado anterior
                                                     //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                     //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
                                             }
@@ -1091,9 +1142,9 @@ namespace MultiProcessorSimulator
                                         terminado = false;
                                         //Falta regresar a estado anterior
                                         //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         volverAEmpezar = true;
                                     }
                                 }
@@ -1113,9 +1164,9 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
 
                 }
@@ -1138,19 +1189,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
                                             {
-                                                Simulador.reloj += 1;
-                                                cicloActual += 1;//Aumento ciclo por acceder a directorio local
-                                                Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio local
+                                                barreraNucleo(1);
                                                 guardarAMemoria(1, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16; //Aumento el ciclo por guardar en memoria compartida del procesador
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del procesador
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria 
                                                 Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] = 0;//Pongo 0 el bit del N0
@@ -1159,9 +1209,9 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
@@ -1170,9 +1220,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1180,20 +1230,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
                                             {
-                                                Simulador.reloj += 5;
-                                                cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
-                                                for (int i = 0; i < 5; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio remoto
+                                                barreraNucleo(5);
                                                 guardarAMemoria(1, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del otro procesador
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del otro procesador
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
                                                 Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;//Pongo 0 el bit del N0
@@ -1202,9 +1250,9 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
@@ -1213,9 +1261,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1226,9 +1274,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] == 0 && Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -1242,9 +1290,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1252,10 +1300,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-                                            Simulador.reloj += 5;
-                                            cicloActual += 5;//Aumento el ciclo por bloquear directorio remota
-                                            for (int i = 0; i < 5; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear directorio remota
+                                            barreraNucleo(5);
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 1] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 3] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -1269,9 +1316,9 @@ namespace MultiProcessorSimulator
                                         {
                                             terminado = false;
 
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1285,21 +1332,20 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;//Aumento un ciclo por acceso a directorio local
-                                        Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio local
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;//Aumento 16 por escribir desde memoria local
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria local
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 if (Simulador.directorioP0[numeroBloque, 0] == 0)
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1312,9 +1358,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 //Falta regresar a estado anterior
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else//Si en el directorio esta M
@@ -1325,22 +1371,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;//Aumento 16 por escribir desde memoria local
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir desde memoria local
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
 
@@ -1351,9 +1396,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         terminado = false;
                                                         //Falta regresar a estado anterior
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
                                                 }
@@ -1361,9 +1406,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     terminado = false;
                                                     //Falta regresar a estado anterior
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else//Esta en cache del N2
@@ -1372,22 +1417,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 40 por escribir desde cache remoto
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 40 por escribir desde cache remoto
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
 
@@ -1397,9 +1441,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         terminado = false;
                                                         //Falta regresar a estado anterior
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache
                                                 }
@@ -1407,9 +1451,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     terminado = false;
                                                     //Falta regresar a estado anterior
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -1418,31 +1462,29 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else//Si el directorio que hay que bloquear es del P1
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio remoto
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 0 || Simulador.directorioP1[numeroBloque - 16, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;//Aumento 16 por escribir desde memoria remota
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria remota
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                 if (Simulador.directorioP1[numeroBloque - 16, 0] == 0)
                                                     Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
@@ -1454,9 +1496,9 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else//Si en el directorio esta M
@@ -1467,22 +1509,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 16 por escribir a memoria remota
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir a memoria remota
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
 
@@ -1492,18 +1533,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else//Esta en cache del N2
@@ -1512,22 +1553,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;//Aumento 16 por escribir desde cache remoto
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir desde cache remoto
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP1[numeroBloque - 16, 2] = 1;//Indico que esta en cache                
@@ -1535,18 +1575,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -1555,9 +1595,9 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -1575,9 +1615,9 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
                 }
 
@@ -1600,20 +1640,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
                                             {
-                                                Simulador.reloj += 5;
-                                                cicloActual += 5;//Aumento ciclo por acceder a directorio remoto
-                                                for (int i = 0; i < 5; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio remoto
+                                                barreraNucleo(5);
                                                 guardarAMemoria(2, numProcesadorBloqueVictima, Simulador.cacheDatosN2[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40; //Aumento el ciclo por guardar en memoria compartida del procesador
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del procesador
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria 
                                                 Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 3] = 0;//Pongo 0 el bit del N0
@@ -1624,9 +1662,9 @@ namespace MultiProcessorSimulator
                                             else//Si no puedo blouear el directorio de la victima
                                             {
 
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
@@ -1635,9 +1673,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1645,19 +1683,18 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota 
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear memoria
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear memoria
+                                            barreraNucleo(1);
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;//Aumento ciclo por acceder a directorio local
-                                                Simulador.barrera.SignalAndWait();
+
+                                                //Aumento ciclo por acceder a directorio local
+                                                barreraNucleo(1);
                                                 guardarAMemoria(2, numProcesadorBloqueVictima, Simulador.cacheDatosN2[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16; //Aumento el ciclo por guardar en memoria compartida del otro procesador
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento el ciclo por guardar en memoria compartida del otro procesador
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
                                                 Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 3] = 0;//Pongo 0 el bit del N0
@@ -1667,9 +1704,9 @@ namespace MultiProcessorSimulator
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
@@ -1678,9 +1715,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1691,10 +1728,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
-                                            Simulador.reloj += 5;
-                                            cicloActual += 5;//Aumento el ciclo por bloquear directorio remota
-                                            for (int i = 0; i < 5; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear directorio remota
+                                            barreraNucleo(5);
                                             Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 3] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 1] == 0 && Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 2] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -1707,9 +1743,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1717,9 +1753,9 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;//Aumento el ciclo por bloquear directorio local
-                                            Simulador.barrera.SignalAndWait();
+
+                                            //Aumento el ciclo por bloquear directorio local
+                                            barreraNucleo(1);
                                             Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 3] = 0;//Cambio bit para indicar que bloque no esta en esa cache
                                             if (Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 1] == 0 && Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 2] == 0)//Si ninguna otra cache tiene el bloque
                                             {
@@ -1732,9 +1768,9 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
@@ -1748,22 +1784,20 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;//Aumento un ciclo por acceso a directorio remoto
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio remoto
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;//Aumento 16 por escribir desde memoria remoto
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria remoto
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 if (Simulador.directorioP0[numeroBloque, 0] == 0)
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
@@ -1775,9 +1809,9 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else//Si en el directorio esta M
@@ -1788,22 +1822,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;//Aumento 16 por escribir desde memoria local
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir desde memoria local
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N2
                                                         {
                                                             Simulador.cacheDatosN2[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP0[numeroBloque, 3] = 1;//Indico que esta en cache
@@ -1812,18 +1845,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else//Esta en cache del N1
@@ -1832,22 +1865,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;//Aumento 16 por escribir desde cache local
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir desde cache local
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN2[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
@@ -1856,18 +1888,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -1876,30 +1908,29 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else//Si el directorio que hay que bloquear es del P1
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;//Aumento un ciclo por acceso a directorio remoto
-                                        Simulador.barrera.SignalAndWait();
+
+                                        //Aumento un ciclo por acceso a directorio remoto
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 0 || Simulador.directorioP1[numeroBloque - 16, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;//Aumento 16 por escribir desde memoria remota
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+                                                //Aumento 16 por escribir desde memoria remota
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                 if (Simulador.directorioP1[numeroBloque - 16, 0] == 0)
                                                     Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
@@ -1911,9 +1942,9 @@ namespace MultiProcessorSimulator
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else//Si en el directorio esta M
@@ -1924,22 +1955,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 16 por escribir a memoria remota
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 16 por escribir a memoria remota
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N1 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN2[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP1[numeroBloque - 16, 3] = 1;//Indico que esta en cache
@@ -1948,18 +1978,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else//Esta en cache del N1
@@ -1968,22 +1998,21 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;//Aumento ciclo por ingresar a memoria
-                                                        Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento ciclo por ingresar a memoria
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;//Aumento 40 por escribir desde cache remoto
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+                                                        //Aumento 40 por escribir desde cache remoto
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                         for (int j = 0; j < 6; j++)//Copio lo que hay en la cache del N2 en la cache del N0
                                                         {
                                                             Simulador.cacheDatosN2[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
@@ -1992,18 +2021,18 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache
                                                 }
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -2012,9 +2041,9 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
 
@@ -2033,9 +2062,9 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
                 }
 
@@ -2043,6 +2072,7 @@ namespace MultiProcessorSimulator
 
             //Console.WriteLine("Instrucción LW ejecutada en el contexto ");
         }
+
 
         /// <summary>
         /// Ejecuta la instrucción SW
@@ -2078,9 +2108,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 2] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN1))
@@ -2093,9 +2123,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP0[numeroBloque, 3] == 0)
@@ -2110,9 +2140,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -2134,19 +2164,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 2] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN1))
@@ -2159,9 +2188,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP1[numeroBloque - 16, 3] == 0)
@@ -2176,9 +2205,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -2200,9 +2229,9 @@ namespace MultiProcessorSimulator
                                     {
                                         terminado = false;
                                         volverEmpezar = true;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2215,18 +2244,17 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(0, 0, Simulador.cacheDatosN0[posCache, 0], posCache);
-                                            Simulador.reloj += 16;
-                                            cicloActual += 16;
-                                            for (int i = 0; i < 16; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(16);
                                             Monitor.Exit(Simulador.memCompartidaP0);
                                             volverEmpezar = false;
                                         }
@@ -2234,9 +2262,9 @@ namespace MultiProcessorSimulator
                                         {
                                             volverEmpezar = true;
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -2251,28 +2279,26 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN0[posCache, 0] >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(0, 1, Simulador.cacheDatosN0[posCache, 0], posCache);
-                                            Simulador.reloj += 40;
-                                            cicloActual += 40;
-                                            for (int i = 0; i < 40; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(40);
                                             Monitor.Exit(Simulador.memCompartidaP1);
                                             volverEmpezar = false;
                                         }
@@ -2280,9 +2306,9 @@ namespace MultiProcessorSimulator
                                         {
                                             volverEmpezar = true;
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -2297,9 +2323,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2309,9 +2335,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;
                                         if (Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 2] == 0 && Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 3] == 0)
                                         {
@@ -2324,19 +2350,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN0[posCache, 0] >= 16)//Voy a directorio de P1
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 1] = 0;
                                         if (Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 2] == 0 && Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 3] == 0)
                                         {
@@ -2349,9 +2374,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2361,9 +2386,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 2)
                                         {
                                             if (Simulador.directorioP0[numeroBloque, 2] == 1)
@@ -2372,16 +2397,15 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
-                                                        Simulador.cacheDatosN1[posCache, 1] = 0;                                     
+                                                        Simulador.cacheDatosN1[posCache, 1] = 0;
                                                         Simulador.directorioP0[numeroBloque, 2] = 0;
                                                         volverEmpezar = false;
                                                     }
@@ -2389,9 +2413,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);
                                                 }
@@ -2399,9 +2423,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP0[numeroBloque, 3] == 1)
@@ -2410,14 +2434,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
                                                         Simulador.cacheDatosN2[posCache, 1] = 0;
                                                         Simulador.directorioP0[numeroBloque, 3] = 0;
@@ -2427,9 +2450,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);
                                                 }
@@ -2437,9 +2460,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -2458,9 +2481,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP0[numeroBloque, 3] == 1)
@@ -2476,9 +2499,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -2486,14 +2509,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);
                                                 Simulador.directorioP0[numeroBloque, 0] = 2;
                                                 Simulador.directorioP0[numeroBloque, 1] = 1;
@@ -2504,9 +2526,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         Monitor.Exit(Simulador.directorioP0);
@@ -2515,19 +2537,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 2)
                                         {
                                             if (Simulador.directorioP1[numeroBloque - 16, 2] == 1)
@@ -2536,14 +2557,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN1[posCache, 1] = 0;
                                                         Simulador.directorioP1[numeroBloque - 16, 2] = 0;
@@ -2553,9 +2573,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);
                                                 }
@@ -2563,9 +2583,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
@@ -2574,17 +2594,16 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN2[posCache, 1] = 0;
-                                                        
+
                                                         Simulador.directorioP1[numeroBloque - 16, 3] = 0;
                                                         volverEmpezar = false;
                                                     }
@@ -2592,9 +2611,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);
                                                 }
@@ -2602,9 +2621,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -2623,9 +2642,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
@@ -2641,9 +2660,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -2651,14 +2670,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);
                                                 Simulador.directorioP1[numeroBloque - 16, 0] = 2;
                                                 Simulador.directorioP1[numeroBloque - 16, 1] = 1;
@@ -2669,9 +2687,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
 
@@ -2686,9 +2704,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2703,9 +2721,9 @@ namespace MultiProcessorSimulator
                     {
                         volverEmpezar = true;
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
                 }
             }
@@ -2728,9 +2746,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 1] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN0))
@@ -2743,9 +2761,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP0[numeroBloque, 3] == 0)
@@ -2760,9 +2778,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -2783,19 +2801,18 @@ namespace MultiProcessorSimulator
                                     else
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 1] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN0))
@@ -2808,9 +2825,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP1[numeroBloque - 16, 3] == 0)
@@ -2825,9 +2842,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -2848,9 +2865,9 @@ namespace MultiProcessorSimulator
                                     else
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2863,18 +2880,17 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(1, 0, Simulador.cacheDatosN1[posCache, 0], posCache);
-                                            Simulador.reloj += 16;
-                                            cicloActual += 16;
-                                            for (int i = 0; i < 16; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(16);
                                             Monitor.Exit(Simulador.memCompartidaP0);
                                             volverEmpezar = false;
                                         }
@@ -2882,9 +2898,9 @@ namespace MultiProcessorSimulator
                                         {
                                             volverEmpezar = true;
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -2898,28 +2914,26 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN1[posCache, 0] >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(1, 1, Simulador.cacheDatosN1[posCache, 0], posCache);
-                                            Simulador.reloj += 40;
-                                            cicloActual += 40;
-                                            for (int i = 0; i < 40; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(40);
                                             Monitor.Exit(Simulador.memCompartidaP1);
                                             volverEmpezar = false;
                                         }
@@ -2927,9 +2941,9 @@ namespace MultiProcessorSimulator
                                         {
                                             volverEmpezar = true;
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -2943,9 +2957,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -2955,9 +2969,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] = 0;
                                         if (Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 1] == 0 && Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 3] == 0)
                                         {
@@ -2971,19 +2985,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN1[posCache, 0] >= 16)//Voy a directorio de P1
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;
                                         if (Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 1] == 0 && Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 3] == 0)
                                         {
@@ -2996,9 +3009,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3008,9 +3021,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 2)
                                         {
                                             if (Simulador.directorioP0[numeroBloque, 1] == 1)
@@ -3019,14 +3032,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
                                                         Simulador.cacheDatosN0[posCache, 1] = 0;
                                                         Simulador.directorioP0[numeroBloque, 1] = 0;
@@ -3036,9 +3048,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);
                                                 }
@@ -3046,9 +3058,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP0[numeroBloque, 3] == 1)
@@ -3057,14 +3069,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
                                                         Simulador.cacheDatosN2[posCache, 1] = 0;
                                                         Simulador.directorioP0[numeroBloque, 3] = 0;
@@ -3074,9 +3085,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);
                                                 }
@@ -3084,9 +3095,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3105,9 +3116,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP0[numeroBloque, 3] == 1)
@@ -3123,9 +3134,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3133,14 +3144,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);
                                                 Simulador.directorioP0[numeroBloque, 0] = 2;
                                                 Simulador.directorioP0[numeroBloque, 2] = 1;
@@ -3151,9 +3161,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         Monitor.Exit(Simulador.directorioP0);
@@ -3162,19 +3172,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 2)
                                         {
                                             if (Simulador.directorioP1[numeroBloque - 16, 1] == 1)
@@ -3183,14 +3192,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN0[posCache, 1] = 0;
                                                         Simulador.directorioP1[numeroBloque - 16, 1] = 0;
@@ -3200,9 +3208,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);
                                                 }
@@ -3210,9 +3218,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
@@ -3221,14 +3229,13 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(2, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN2[posCache, 1] = 0;
                                                         Simulador.directorioP1[numeroBloque - 16, 3] = 0;
@@ -3238,9 +3245,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);
                                                 }
@@ -3248,9 +3255,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3269,9 +3276,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP1[numeroBloque - 16, 3] == 1)
@@ -3287,9 +3294,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3297,14 +3304,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);
                                                 Simulador.directorioP1[numeroBloque - 16, 0] = 2;
                                                 Simulador.directorioP1[numeroBloque - 16, 2] = 1;
@@ -3315,9 +3321,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         Monitor.Exit(Simulador.directorioP1);
@@ -3326,9 +3332,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3343,9 +3349,9 @@ namespace MultiProcessorSimulator
                     {
                         volverEmpezar = true;
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
                 }
             }
@@ -3368,10 +3374,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP0[numeroBloque, 1] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN0))
@@ -3384,9 +3389,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP0[numeroBloque, 2] == 0)
@@ -3401,9 +3406,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -3424,18 +3429,18 @@ namespace MultiProcessorSimulator
                                     else
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP1[numeroBloque - 16, 1] == 0)
                                         {
                                             if (Monitor.TryEnter(Simulador.cacheDatosN0))
@@ -3448,9 +3453,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else if (Simulador.directorioP1[numeroBloque - 16, 2] == 0)
@@ -3465,9 +3470,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 terminado = false;
                                                 volverEmpezar = true;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         else
@@ -3488,9 +3493,9 @@ namespace MultiProcessorSimulator
                                     else
                                     {
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3503,19 +3508,17 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(2, 0, Simulador.cacheDatosN2[posCache, 0], posCache);
-                                            Simulador.reloj += 40;
-                                            cicloActual += 40;
-                                            for (int i = 0; i < 40; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(40);
                                             Monitor.Exit(Simulador.memCompartidaP0);
                                             volverEmpezar = false;
                                         }
@@ -3523,9 +3526,9 @@ namespace MultiProcessorSimulator
                                         {
                                             volverEmpezar = true;
                                             terminado = false;
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -3539,37 +3542,36 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN2[posCache, 0] >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                         {
-                                            Simulador.reloj++;
-                                            cicloActual++;
+
+
                                             guardarAMemoria(2, 1, Simulador.cacheDatosN2[posCache, 0], posCache);
-                                            Simulador.reloj += 16;
-                                            cicloActual += 16;
-                                            for (int i = 0; i < 16; i++)
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                            barreraNucleo(16);
                                             Monitor.Exit(Simulador.memCompartidaP1);
                                             volverEmpezar = false;
                                         }
                                         else
                                         {
                                             volverEmpezar = true;
-                                            terminado = false;                                            
-                                            Simulador.reloj++;
-                                            cicloActual++;
-                                            Simulador.barrera.SignalAndWait();
+                                            terminado = false;
+
+
+                                            barreraNucleo(1);
                                         }
                                         if (!volverEmpezar)
                                         {
@@ -3583,9 +3585,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3595,10 +3597,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 3] = 0;
                                         if (Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 1] == 0 && Simulador.directorioP0[Simulador.cacheDatosN2[posCache, 0], 2] == 0)
                                         {
@@ -3612,18 +3613,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (Simulador.cacheDatosN2[posCache, 0] >= 16)//Voy a directorio de P1
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 3] = 0;
                                         if (Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 1] == 0 && Simulador.directorioP1[Simulador.cacheDatosN2[posCache, 0] - 16, 2] == 0)
                                         {
@@ -3636,9 +3637,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3648,10 +3649,9 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
-                                        Simulador.reloj += 5;
-                                        cicloActual += 5;
-                                        for (int i = 0; i < 5; i++)
-                                            Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(5);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 2)
                                         {
                                             if (Simulador.directorioP0[numeroBloque, 1] == 1)
@@ -3660,27 +3660,26 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
                                                         Simulador.cacheDatosN0[posCache, 1] = 0;
-                                                        
+
                                                         Simulador.directorioP0[numeroBloque, 1] = 0;
                                                         volverEmpezar = false;
                                                     }
                                                     else
                                                     {
                                                         volverEmpezar = true;
-                                                        terminado = false;                                                        
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+                                                        terminado = false;
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);
                                                 }
@@ -3688,9 +3687,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP0[numeroBloque, 2] == 1)
@@ -3699,17 +3698,16 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 0, numeroBloque, posCache);
-                                                        Simulador.reloj += 16;
-                                                        cicloActual += 16;
-                                                        for (int i = 0; i < 16; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);
                                                         Simulador.cacheDatosN1[posCache, 1] = 0;
-                                                        
+
                                                         Simulador.directorioP0[numeroBloque, 2] = 0;
                                                         volverEmpezar = false;
                                                     }
@@ -3717,9 +3715,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);
                                                 }
@@ -3727,9 +3725,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3748,9 +3746,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP0[numeroBloque, 2] == 1)
@@ -3766,9 +3764,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3776,14 +3774,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 40;
-                                                cicloActual += 40;
-                                                for (int i = 0; i < 40; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP0);
                                                 Simulador.directorioP0[numeroBloque, 0] = 2;
                                                 Simulador.directorioP0[numeroBloque, 3] = 1;
@@ -3794,9 +3791,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         Monitor.Exit(Simulador.directorioP0);
@@ -3805,18 +3802,18 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                                 else if (numeroBloque >= 16)
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 2)
                                         {
                                             if (Simulador.directorioP1[numeroBloque - 16, 1] == 1)
@@ -3825,27 +3822,26 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(0, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN0[posCache, 1] = 0;
-                                                        
+
                                                         Simulador.directorioP1[numeroBloque - 16, 1] = 0;
                                                         volverEmpezar = false;
                                                     }
                                                     else
                                                     {
                                                         volverEmpezar = true;
-                                                        terminado = false;                                                        
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+                                                        terminado = false;
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);
                                                 }
@@ -3853,9 +3849,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             else if (Simulador.directorioP1[numeroBloque - 16, 2] == 1)
@@ -3864,17 +3860,16 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                                     {
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                         guardarAMemoria(1, 1, numeroBloque, posCache);
-                                                        Simulador.reloj += 40;
-                                                        cicloActual += 40;
-                                                        for (int i = 0; i < 40; i++)
-                                                            Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);
                                                         Simulador.cacheDatosN1[posCache, 1] = 0;
-                                                        
+
                                                         Simulador.directorioP1[numeroBloque - 16, 2] = 0;
                                                         volverEmpezar = false;
                                                     }
@@ -3882,9 +3877,9 @@ namespace MultiProcessorSimulator
                                                     {
                                                         volverEmpezar = true;
                                                         terminado = false;
-                                                        Simulador.reloj++;
-                                                        cicloActual++;
-                                                        Simulador.barrera.SignalAndWait();
+
+
+                                                        barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN1);
                                                 }
@@ -3892,9 +3887,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3913,9 +3908,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                             if (Simulador.directorioP1[numeroBloque - 16, 2] == 1)
@@ -3931,9 +3926,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     volverEmpezar = true;
                                                     terminado = false;
-                                                    Simulador.reloj++;
-                                                    cicloActual++;
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                    barreraNucleo(1);
                                                 }
                                             }
                                         }
@@ -3941,14 +3936,13 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))
                                             {
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 2);
-                                                Simulador.reloj += 16;
-                                                cicloActual += 16;
-                                                for (int i = 0; i < 16; i++)
-                                                    Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP1);
                                                 Simulador.directorioP1[numeroBloque - 16, 0] = 2;
                                                 Simulador.directorioP1[numeroBloque - 16, 3] = 1;
@@ -3959,9 +3953,9 @@ namespace MultiProcessorSimulator
                                             {
                                                 volverEmpezar = true;
                                                 terminado = false;
-                                                Simulador.reloj++;
-                                                cicloActual++;
-                                                Simulador.barrera.SignalAndWait();
+
+
+                                                barreraNucleo(1);
                                             }
                                         }
                                         Monitor.Exit(Simulador.directorioP1);
@@ -3970,9 +3964,9 @@ namespace MultiProcessorSimulator
                                     {
                                         volverEmpezar = true;
                                         terminado = false;
-                                        Simulador.reloj++;
-                                        cicloActual++;
-                                        Simulador.barrera.SignalAndWait();
+
+
+                                        barreraNucleo(1);
                                     }
                                 }
                             }
@@ -3987,33 +3981,35 @@ namespace MultiProcessorSimulator
                     {
                         volverEmpezar = true;
                         terminado = false;
-                        Simulador.reloj++;
-                        cicloActual++;
-                        Simulador.barrera.SignalAndWait();
+
+
+                        barreraNucleo(1);
                     }
                 }
             }
         }
-
         /// <summary>
         /// Ejecuta la instrucción FIN
         /// </summary>
-
         private void instruccionFIN()
         {
             if (numProc == 0)
             {
-                lock (Simulador.contextoP0) {
-                    Simulador.contextoP0[contextoActual][33] = cicloActual;
+                lock (Simulador.contextoP0)
+                {
+                    Simulador.contextoP0[contextoActual][33] += cicloActual;
                     Simulador.contextoP0[contextoActual][37] = Simulador.reloj;
+                    Simulador.contextoP0[contextoActual][38] =0; //Marco que termino
                 }
-                
+
             }
-            else {
+            else
+            {
                 lock (Simulador.contextoP1)
                 {
-                    Simulador.contextoP1[contextoActual][33] = cicloActual;
+                    Simulador.contextoP1[contextoActual][33] += cicloActual;
                     Simulador.contextoP1[contextoActual][37] = Simulador.reloj;
+                    Simulador.contextoP1[contextoActual][38] = 0; //Marco que termino
                 }
             }
 
@@ -4024,9 +4020,11 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Imprime los registros actuales del núcleo
         /// </summary>
-        public void printRegistros() {
+        public void printRegistros()
+        {
             Console.Write("\n REGISTROS PROCESADOR " + numProc);
-            foreach (int registro in registros) {
+            foreach (int registro in registros)
+            {
                 Console.Write(registro + " ");
             }
         }
@@ -4038,12 +4036,14 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Retorna el contexto actual del núcleo
         /// </summary>
-        public int[] getContexto() {
+        public int[] getContexto()
+        {
             int[] contextoActual = new int[36];
             return contextoActual;
         }
 
-        public int obtenerNumBloque(){
+        public int obtenerNumBloque()
+        {
             int numBloque = (registros[IR[1]] + IR[3]) / 16;
             return numBloque;
         }
@@ -4063,7 +4063,7 @@ namespace MultiProcessorSimulator
         public int obtenerNumBloqueInstruccion(int numProcesador)
         {
             int numBloque;
-            if (numProcesador == 0) 
+            if (numProcesador == 0)
                 numBloque = (PC / 16);
             else
                 numBloque = (PC / 16);
@@ -4076,25 +4076,25 @@ namespace MultiProcessorSimulator
             return numPalabra;
         }
 
-        public bool instruccionEnCache(int numBloque, int posCache,int numNucleo)
+        public bool instruccionEnCache(int numBloque, int posCache, int numNucleo)
         {
             bool esta = false;
             switch (numNucleo)
             {
                 case 0:
-                    if (Simulador.cacheInstruccionesN0[posCache,0] == numBloque)
+                    if (Simulador.cacheInstruccionesN0[posCache, 0] == numBloque)
                         esta = true;
                     else
                         esta = false;
                     break;
                 case 1:
-                    if (Simulador.cacheInstruccionesN1[posCache,0] == numBloque)
+                    if (Simulador.cacheInstruccionesN1[posCache, 0] == numBloque)
                         esta = true;
                     else
                         esta = false;
                     break;
                 case 2:
-                    if (Simulador.cacheInstruccionesN2[posCache,0] == numBloque)
+                    if (Simulador.cacheInstruccionesN2[posCache, 0] == numBloque)
                         esta = true;
                     else
                         esta = false;
@@ -4104,16 +4104,16 @@ namespace MultiProcessorSimulator
             return esta;
         }
 
-        public void insertarBloqueCacheInstrucciones(int numBloque,int posCache, int numNucleo)
+        public void insertarBloqueCacheInstrucciones(int numBloque, int posCache, int numNucleo)
         {
             switch (numNucleo)
             {
                 case 0:
                     Simulador.cacheInstruccionesN0[posCache, 0] = numBloque;
-                    for(int i = 1; i < 17; i++)
+                    for (int i = 1; i < 17; i++)
                     {
                         //Console.WriteLine(numNucleo + " " + Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))] + "\n\n");
-                        Simulador.cacheInstruccionesN0[posCache, i] = Simulador.memInstruccionesP0[((numBloque-16)*16 + (i-1))];
+                        Simulador.cacheInstruccionesN0[posCache, i] = Simulador.memInstruccionesP0[((numBloque - 16) * 16 + (i - 1))];
                     }
                     break;
                 case 1:
@@ -4180,10 +4180,10 @@ namespace MultiProcessorSimulator
                     Simulador.cacheDatosN0[posCache, 1] = estado;
                     for (int i = 2; i < 6; i++)
                     {
-                        if(numBloque < 16)
-                            Simulador.cacheDatosN0[posCache, i] = Simulador.memCompartidaP0[numBloque * 4 + i-2];
+                        if (numBloque < 16)
+                            Simulador.cacheDatosN0[posCache, i] = Simulador.memCompartidaP0[numBloque * 4 + i - 2];
                         else
-                            Simulador.cacheDatosN0[posCache, i] = Simulador.memCompartidaP1[(numBloque-16) * 4 + i - 2];
+                            Simulador.cacheDatosN0[posCache, i] = Simulador.memCompartidaP1[(numBloque - 16) * 4 + i - 2];
                     }
                     break;
                 case 1:
@@ -4229,7 +4229,7 @@ namespace MultiProcessorSimulator
             {
                 for (int i = 1; i < 4; i++)
                 {
-                    if (Simulador.directorioP1[numBloque-16, i] == 1)
+                    if (Simulador.directorioP1[numBloque - 16, i] == 1)
                     {
                         cache = i - 2;
                         i = Simulador.directorioP1.Length;
@@ -4241,7 +4241,7 @@ namespace MultiProcessorSimulator
 
         public void guardarAMemoria(int numCache, int numMemProcesador, int numBloque, int posCache)
         {
-            if(numBloque < 16)
+            if (numBloque < 16)
             {
                 if (numCache == 0)
                 {
@@ -4289,6 +4289,32 @@ namespace MultiProcessorSimulator
                     }
                 }
             }
+        }
+
+        public void barreraNucleo(int cantidad)
+        {
+            Object thisLock = new Object();
+            for (int i = 1; i <= cantidad; ++i)
+            {
+                Simulador.barrera.SignalAndWait();
+                cicloActual++;
+                Interlocked.Increment(ref Simulador.reloj);
+                if (Simulador.reloj % 100 == 0 && modo == 1)
+                {
+                    modoLento();
+                }
+            }
+        }
+
+        public void modoLento()
+        {
+            lock (Simulador.ConsoleWriterLock)
+            {
+                Console.Write("\n");
+                Console.Write("Digite enter para continuar");
+                Console.Read();
+            }
+                
         }
     }
 }
