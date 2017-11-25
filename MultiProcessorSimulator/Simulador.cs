@@ -39,6 +39,7 @@ namespace MultiProcessorSimulator
         public static int reloj = 0;
         public static Barrier barrera;
         private int cicloActual;
+        public static readonly object ConsoleWriterLock = new object();
 
         public void correr()
         {
@@ -58,23 +59,23 @@ namespace MultiProcessorSimulator
             Console.WriteLine("Elija su modo de ejecución: Digite 1 para lento o 2 para rápido");
             int modo = Int32.Parse(Console.ReadLine());
 
-            barrera = new Barrier(3);                                           //Inicializacion de la barrera
+            barrera = new Barrier(4);                                           //Inicializacion de la barrera
 
             //Llamado de los nucleos
             contextoP0[0][34] = 0;
-            Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0);
+            Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0, modo);
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
             nucleo0Thread.Start();
 
             contextoP0[1][34] = 0;
-            Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1);
+            Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1, modo);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
             nucleo1Thread.Start();
 
-            /*contextoP1[0][34] = 0;
-            Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0);
+            contextoP1[0][34] = 0;
+            Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0, modo);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
-            nucleo2Thread.Start();*/
+            nucleo2Thread.Start();
 
             //Sincronizador de ciclos
             bool flag = true;
@@ -87,6 +88,10 @@ namespace MultiProcessorSimulator
             //finalizar
             finalizar(hilosP0, hilosP1);
             Console.Read();
+            if(modo == 1)
+            {
+                Console.Read();
+            }
         }
 
         public void inicializar()
@@ -272,7 +277,7 @@ namespace MultiProcessorSimulator
             for (int i = 0; i< hilillos.Length; ++i)
             {
                 contexto[i][0] = direccion;
-                contexto[i][33] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
+                contexto[i][38] = -1; // Con el contexto[i][33] se indica el tiempo en que terminó, si es -1 quiere decir que no ha terminado.
                 contexto[i][34] = -1; // Indica que estan en desuso
                 contexto[i][37] = -1; //Indica que aun no ha iniciado el hilillo
                 lines = System.IO.File.ReadAllLines(hilillos[i]);
@@ -388,6 +393,7 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
+                    //Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP0[i][j]);
                     Console.Write(" ");
                 }
@@ -408,6 +414,7 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
+                    //Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP1[i][j]);
                     Console.Write(" ");
                 }
