@@ -39,7 +39,7 @@ namespace MultiProcessorSimulator
         public static int reloj = 0;
         public static Barrier barrera;
         private int cicloActual;
-
+        public static readonly object ConsoleWriterLock = new object();
 
         public void correr()
         {
