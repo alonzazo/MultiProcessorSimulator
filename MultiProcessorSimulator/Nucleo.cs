@@ -892,7 +892,7 @@ namespace MultiProcessorSimulator
 
                                                         Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
                                                         //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -946,6 +946,7 @@ namespace MultiProcessorSimulator
 
                                                         Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
                                                         //Monitor.Exit(Simulador.directorioP0);//Libero el directorio                    
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1053,7 +1054,7 @@ namespace MultiProcessorSimulator
 
                                                         Simulador.directorioP1[numeroBloque - 16, 1] = 1;//Indico que esta en cache
                                                         //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1107,6 +1108,7 @@ namespace MultiProcessorSimulator
 
                                                         Simulador.directorioP1[numeroBloque - 16, 1] = 1;	//Indico que esta en cache
                                                         //Monitor.Exit(Simulador.directorioP1);//Libero el directorio                    
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1390,7 +1392,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
 
                                                         Simulador.directorioP0[numeroBloque, 2] = 1;//Indico que esta en cache
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1436,6 +1438,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
 
                                                         Simulador.directorioP0[numeroBloque, 2] = 1;//Indico que esta en cache                    
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1528,7 +1531,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
 
                                                         Simulador.directorioP1[numeroBloque - 16, 2] = 1;//Indico que esta en cache
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1571,6 +1574,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP1[numeroBloque - 16, 2] = 1;//Indico que esta en cache                
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1840,7 +1844,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP0[numeroBloque, 3] = 1;//Indico que esta en cache
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1884,6 +1888,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
                                                         Simulador.directorioP0[numeroBloque, 3] = 1;//Indico que esta en cache                   
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -1973,7 +1978,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
                                                         Simulador.directorioP1[numeroBloque - 16, 3] = 1;//Indico que esta en cache
-
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
@@ -2017,6 +2022,7 @@ namespace MultiProcessorSimulator
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
 
                                                         Simulador.directorioP1[numeroBloque - 16, 3] = 1;//Indico que esta en cache         
+                                                        terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
