@@ -65,16 +65,19 @@ namespace MultiProcessorSimulator
             contextoP0[0][34] = 0;
             Nucleo nucleo0 = new Nucleo(0, 0, contextoP0[0], 0, modo);
             Thread nucleo0Thread = new Thread(new ThreadStart(nucleo0.run));
+            nucleo0Thread.Name = "P0 Nucleo 0";
             nucleo0Thread.Start();
 
             contextoP0[1][34] = 0;
             Nucleo nucleo1 = new Nucleo(0, 1, contextoP0[1], 1, modo);
             Thread nucleo1Thread = new Thread(new ThreadStart(nucleo1.run));
+            nucleo1Thread.Name = "P0 Nucleo 1";
             nucleo1Thread.Start();
 
             contextoP1[0][34] = 0;
             Nucleo nucleo2 = new Nucleo(1, 2, contextoP1[0], 0, modo);
             Thread nucleo2Thread = new Thread(new ThreadStart(nucleo2.run));
+            nucleo2Thread.Name = "P1 Nucleo 2";
             nucleo2Thread.Start();
 
             //Sincronizador de ciclos
@@ -402,11 +405,17 @@ namespace MultiProcessorSimulator
                 string nombre = aux[aux.Length - 1];
                 Console.WriteLine("Contenido del hilillo " + nombre);
                 Console.WriteLine("Registros:");
+                for (int j = 0; j < 32; j++) {
+                    for (int k = 0; k < 2 - j.ToString().Length; k++) Console.Write(" ");
+                    Console.Write("R" + j +"|");
+                }
+                Console.Write("\n");
                 for (int j = 1; j < 33; ++j)
                 {
                     //Console.Write("R" + (j - 1) + ":");
-                    Console.Write(contextoP0[i][j]);
-                    Console.Write(" ");
+                    for (int k = 0; k < 3 - contextoP0[i][j].ToString().Length; k++) Console.Write(" ");
+                    Console.Write(contextoP0[i][j] + "|");
+                    //Console.Write(" ");
                 }
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
@@ -423,11 +432,18 @@ namespace MultiProcessorSimulator
                 string nombre = aux[aux.Length - 1];
                 Console.WriteLine("Contenido del hilillo " + nombre);
                 Console.WriteLine("Registros:");
+                for (int j = 0; j < 32; j++)
+                {
+                    for (int k = 0; k < 2 - j.ToString().Length; k++) Console.Write(" ");
+                    Console.Write("R" + j + "|");
+                }
+                Console.Write("\n");
                 for (int j = 1; j < 33; ++j)
                 {
                     //Console.Write("R" + (j - 1) + ":");
-                    Console.Write(contextoP1[i][j]);
-                    Console.Write(" ");
+                    for (int k = 0; k < 3 - contextoP0[i][j].ToString().Length; k++) Console.Write(" ");
+                    Console.Write(contextoP0[i][j] + "|");
+                    //Console.Write(" ");
                 }
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
