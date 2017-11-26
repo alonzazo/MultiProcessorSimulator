@@ -18,7 +18,7 @@ namespace MultiProcessorSimulator
         private int[] registros;
         private int quantumAux;
         private int modo;
-
+        private Random rnd;
         private String logExecution;
 
         public Nucleo(int numProc, int numNucleo, int[] contexto, int numContexto, int modo)
@@ -38,6 +38,7 @@ namespace MultiProcessorSimulator
             {
                 registros[i - 1] = contexto[i];
             }
+            rnd = new Random();
         }
 
 
@@ -175,12 +176,14 @@ namespace MultiProcessorSimulator
                                 break;
                             //Caso del LW
                             case 35:
-                                instruccionLW();
+                                
+                                instruccionLW(rnd.Next(1, 10));
                                 Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
-                                instruccionSW();
+                          
+                                instruccionSW(rnd.Next(11, 20));
                                 Simulador.quantum--;
                                 break;
                             //Caso del FIN
@@ -217,14 +220,14 @@ namespace MultiProcessorSimulator
                                         Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
                                         lock (Simulador.ConsoleWriterLock)
                                         {
-                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                           /* Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
 
-                                            Simulador.printContexto();
+                                            Simulador.printContexto();*/
                                         }
                                         
                                     }
-                                    lock (Simulador.ConsoleWriterLock)
-                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    //lock (Simulador.ConsoleWriterLock)
+                                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -270,14 +273,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                 }
                                 Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                lock (Simulador.ConsoleWriterLock)
-                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-                                lock (Simulador.ConsoleWriterLock)
-                                    Simulador.printContexto();
+                                //lock (Simulador.ConsoleWriterLock)
+                                    //Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -289,8 +292,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-                    lock (Simulador.ConsoleWriterLock)
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    //lock (Simulador.ConsoleWriterLock)
+                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
                     lock (Simulador.contextoP0)
                     {
@@ -409,12 +412,12 @@ namespace MultiProcessorSimulator
                                 break;
                             //Caso del LW
                             case 35:
-                                instruccionLW();
+                                instruccionLW(rnd.Next(1, 10));
                                 Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
-                                instruccionSW();
+                                instruccionSW(rnd.Next(11, 20));
                                 Simulador.quantum--;
                                 break;
                             //Caso del FIN
@@ -450,15 +453,15 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                         }
                                         Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        lock (Simulador.ConsoleWriterLock)
+                                        /*lock (Simulador.ConsoleWriterLock)
                                         {
                                             Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                             Simulador.printContexto();
-                                        }
+                                        }*/
                                             
                                     }
-                                    lock (Simulador.ConsoleWriterLock)
-                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    //lock (Simulador.ConsoleWriterLock)
+                                      //  Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -506,14 +509,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                 }
                                 Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                lock (Simulador.ConsoleWriterLock)
-                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-                                lock (Simulador.ConsoleWriterLock)
-                                    Simulador.printContexto();
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -522,8 +525,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-                    lock (Simulador.ConsoleWriterLock)
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    //lock (Simulador.ConsoleWriterLock)
+                      //  Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
 
                     lock (Simulador.contextoP1)
                     {
@@ -651,7 +654,7 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción LW
         /// </summary>
-        private void instruccionLW()
+        private void instruccionLW(int rand)
         {
             logExecution += "Instrucción LW ejecutada en el contexto " + contextoActual + "\n";
             int numeroBloque = obtenerNumBloque();
@@ -667,6 +670,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -678,31 +683,24 @@ namespace MultiProcessorSimulator
                                 {
                                     if (numProcesadorBloqueVictima == 0)//Si el bloque esta en el procesador 0
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria 
+                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio de la victima
                                         {
-
-                                            //Aumento el ciclo por bloquear memoria
+                                            //Aumento el ciclo por bloquear directorio local
                                             barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-
-                                                //Aumento ciclo por acceder a directorio local
+                                                //Aumento ciclo por acceder memoria
                                                 barreraNucleo(1);
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-
                                                 //Aumento el ciclo por guardar en memoria compartida del procesador
                                                 barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria 
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Pongo 0 el bit del N0
                                                 Simulador.cacheDatosN0[posCache, 1] = 0;//Invalido la posicion en la cache
-
                                             }
-                                            else//Si no puedo blouear el directorio de la victima
+                                            else//Si no puedo bloquear la memoria
                                             {
-                                                //Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria                                                Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                                 barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
@@ -712,54 +710,40 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-                                            //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
                                     else //Si el bloque esta en el procesador 1
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota 
+                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la victima
                                         {
-
                                             //Aumento el ciclo por bloquear memoria
-                                            barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
+                                            barreraNucleo(5);
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-
                                                 //Aumento ciclo por acceder a directorio remoto
-                                                barreraNucleo(5);
+                                                barreraNucleo(1);
                                                 guardarAMemoria(0, numProcesadorBloqueVictima, Simulador.cacheDatosN0[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-
                                                 //Aumento el ciclo por guardar en memoria compartida del otro procesador
                                                 barreraNucleo(40);
-                                                //Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
+                                                Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
                                                 Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 1] = 0;//Pongo 0 el bit del N0
-                                                Monitor.Exit(Simulador.memCompartidaP1);//Libero directorio de la victima
                                                 Simulador.cacheDatosN0[posCache, 1] = 0;//Invalido la posicion en la cache
 
                                             }
-                                            else//Si no puedo blouear el directorio de la victima
+                                            else//Si no puedo bloquear la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 terminado = false;
-                                                //Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
-                                                //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                                                 volverAEmpezar = true;
                                             }
                                             Monitor.Exit(Simulador.directorioP1);
                                         }
-                                        else//No puedo bloquear la memoria
+                                        else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
@@ -771,7 +755,6 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio donde esta la victima
                                         {
-
                                             //Aumento el ciclo por bloquear memoria
                                             barreraNucleo(1);
                                             Simulador.directorioP0[Simulador.cacheDatosN0[posCache, 0], 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -781,14 +764,10 @@ namespace MultiProcessorSimulator
                                             }
                                             Monitor.Exit(Simulador.directorioP0);		//Libero el directorio
                                             Simulador.cacheDatosN0[posCache, 1] = 0;	//Invalido la posicion en la cache
-
                                         }
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
@@ -797,7 +776,6 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-
                                             //Aumento el ciclo por bloquear memoria remota
                                             barreraNucleo(5);
                                             Simulador.directorioP1[Simulador.cacheDatosN0[posCache, 0] - 16, 1] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -807,62 +785,46 @@ namespace MultiProcessorSimulator
                                             }
                                             Monitor.Exit(Simulador.directorioP1);//Libero el directorio
                                             Simulador.cacheDatosN0[posCache, 1] = 0;//Invalido la posicion en la cache
-
                                         }
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-                                            //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
                                 }
-
                             }
                             if (!volverAEmpezar)
                             {
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
-
                                         //Aumento un ciclo por acceso a directorio local
                                         barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-
                                                 //Aumento 16 por escribir desde memoria local
                                                 barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
                                                 if (Simulador.directorioP0[numeroBloque, 0] == 0)
                                                     Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                 Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
-
                                                 terminado = true;//Solo falta obtener de cache
-
                                             }
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                //Falta regresar a estado anterior
-                                                //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                 barreraNucleo(1);
                                                 volverAEmpezar = true;
                                             }
-
                                         }
                                         else//Si en el directorio esta M
                                         {
@@ -872,11 +834,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(1, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 16 por escribir desde memoria local
                                                         barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
@@ -884,24 +844,15 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
-
                                                         Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
-                                                        //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
                                                         terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-                                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                        //Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
-                                                        //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                         barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
@@ -910,11 +861,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-                                                    //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                    //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                     barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
@@ -925,11 +871,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria del P0
                                                     {
-
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 40 por escribir desde cache remoto
                                                         barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
@@ -937,25 +881,15 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
-
                                                         Simulador.directorioP0[numeroBloque, 1] = 1;//Indico que esta en cache
-                                                        //Monitor.Exit(Simulador.directorioP0);//Libero el directorio                    
                                                         terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-                                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                        //Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
-                                                        //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                         barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
@@ -964,11 +898,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-                                                    //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                    //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                     barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
@@ -979,10 +908,6 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        //Falta regresar a estado anterior
-                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                         barreraNucleo(1);
                                         volverAEmpezar = true;
                                     }
@@ -991,36 +916,25 @@ namespace MultiProcessorSimulator
                                 {
                                     if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio del P1
                                     {
-
                                         //Aumento un ciclo por acceso a directorio remoto
                                         barreraNucleo(5);
                                         if (Simulador.directorioP1[numeroBloque - 16, 0] == 0 || Simulador.directorioP1[numeroBloque - 16, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-
                                                 //Aumento 16 por escribir desde memoria remota
                                                 barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
                                                 if (Simulador.directorioP1[numeroBloque - 16, 0] == 0)
                                                     Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                 Simulador.directorioP1[numeroBloque - 16, 1] = 1;//Indico que esta en cache
-
                                                 terminado = true;//Solo falta obtener de cache
-
                                             }
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                //Falta regresar a estado anterior
-                                                //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-
-
                                                 barreraNucleo(1);
                                                 volverAEmpezar = true;
                                             }
@@ -1033,11 +947,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(1, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 16 por escribir a memoria remota
                                                         barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
@@ -1045,25 +957,15 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN1[posCache, j];
                                                         }
-
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN1[posCache, 1] = 1;//Pongo cache en C
-
                                                         Simulador.directorioP1[numeroBloque - 16, 1] = 1;//Indico que esta en cache
-                                                        //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
                                                         terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-                                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                        //Monitor.Exit(Simulador.cacheDatosN1);//Libero la cache remota
-                                                        //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-
-
                                                         barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
@@ -1072,11 +974,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-                                                    //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                    //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-
-
                                                     barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
@@ -1087,11 +984,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(2, 1, numeroBloque, posCache);  //Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 16 por escribir desde cache remoto
                                                         barreraNucleo(16);
                                                         Monitor.Exit(Simulador.memCompartidaP1);		//Libero la memoria
@@ -1099,25 +994,15 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN0[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;	//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;            //Pongo cache en C
-
-                                                        Simulador.directorioP1[numeroBloque - 16, 1] = 1;	//Indico que esta en cache
-                                                        //Monitor.Exit(Simulador.directorioP1);//Libero el directorio                    
+                                                        Simulador.directorioP1[numeroBloque - 16, 1] = 1;	//Indico que esta en cache                    
                                                         terminado = true;
                                                     }
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-                                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                        //Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache remota
-                                                        //Monitor.Exit(Simulador.directorioP1);//Libero el directorio
-
-
                                                         barreraNucleo(1);
                                                         volverAEmpezar = true;
                                                     }
@@ -1126,11 +1011,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-                                                    //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-                                                    //Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
-
                                                     barreraNucleo(1);
                                                     volverAEmpezar = true;
                                                 }
@@ -1141,23 +1021,17 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-                                        //Falta regresar a estado anterior
-                                        //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
-
-
                                         barreraNucleo(1);
                                         volverAEmpezar = true;
                                     }
                                 }
                             }
-
                         }
                         else
                             terminado = true;
                         if (terminado)//Si esta en cache y esta modificado o compartido
                         {
                             registros[IR[2]] = Simulador.cacheDatosN0[posCache, numPalabra + 2];//Copiamos lo que tiene la cache en el registro
-                            //Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
                             terminado = true;
                         }
                         Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache local
@@ -1165,8 +1039,6 @@ namespace MultiProcessorSimulator
                     else//No se pudo bloquear la cache local
                     {
                         terminado = false;
-
-
                         barreraNucleo(1);
                     }
 
@@ -1177,6 +1049,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN1))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -1188,71 +1062,57 @@ namespace MultiProcessorSimulator
                                 {
                                     if (numProcesadorBloqueVictima == 0)//Si el bloque esta en el procesador 0
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria
+                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio de la victima
                                         {
-
                                             //Aumento el ciclo por bloquear memoria
                                             barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria 
                                             {
-
                                                 //Aumento ciclo por acceder a directorio local
                                                 barreraNucleo(1);
                                                 guardarAMemoria(1, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-
                                                 //Aumento el ciclo por guardar en memoria compartida del procesador
                                                 barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria 
                                                 Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 2] = 0;//Pongo 0 el bit del N0
                                                 Simulador.cacheDatosN1[posCache, 1] = 0;//Invalido la posicion en la cache
-
                                             }
-                                            else//Si no puedo blouear el directorio de la victima
+                                            else//Si no puedo bloquear la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
                                             }
                                             Monitor.Exit(Simulador.directorioP0);//Libero directorio de la victima
                                         }
-                                        else//No puedo bloquear la memoria
+                                        else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
                                     }
                                     else //Si el bloque esta en el procesador 1
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota
+                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la victima
                                         {
-
                                             //Aumento el ciclo por bloquear memoria
-                                            barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
+                                            barreraNucleo(5);
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-
                                                 //Aumento ciclo por acceder a directorio remoto
-                                                barreraNucleo(5);
+                                                barreraNucleo(1);
                                                 guardarAMemoria(1, numProcesadorBloqueVictima, Simulador.cacheDatosN1[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
-
                                                 //Aumento el ciclo por guardar en memoria compartida del otro procesador
                                                 barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria 
                                                 Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 0] = 0;//Pongo U a directorio
                                                 Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;//Pongo 0 el bit del N0
                                                 Simulador.cacheDatosN1[posCache, 1] = 0;//Invalido la posicion en la cache
-
                                             }
                                             else//Si no puedo blouear el directorio de la victima
                                             {
-
-
                                                 barreraNucleo(1);
                                                 terminado = false;
                                                 volverAEmpezar = true;
@@ -1262,8 +1122,6 @@ namespace MultiProcessorSimulator
                                         else//No puedo bloquear la memoria
                                         {
                                             terminado = false;
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
@@ -1283,16 +1141,12 @@ namespace MultiProcessorSimulator
                                             {
                                                 Simulador.directorioP0[Simulador.cacheDatosN1[posCache, 0], 0] = 0;
                                             }
-
                                             Simulador.cacheDatosN1[posCache, 1] = 0;//Invalido la posicion en la cache
                                             Monitor.Exit(Simulador.directorioP0);//Libero el directorio
-
                                         }
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
@@ -1301,7 +1155,6 @@ namespace MultiProcessorSimulator
                                     {
                                         if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto donde esta la victima
                                         {
-
                                             //Aumento el ciclo por bloquear directorio remota
                                             barreraNucleo(5);
                                             Simulador.directorioP1[Simulador.cacheDatosN1[posCache, 0] - 16, 2] = 0;//Cambio bit para indicar que bloque no esta en esa cache
@@ -1311,14 +1164,10 @@ namespace MultiProcessorSimulator
                                             }
                                             Monitor.Exit(Simulador.directorioP1);//Libero el directorio
                                             Simulador.cacheDatosN1[posCache, 1] = 0;//Invalido la posicion en la cache
-
                                         }
                                         else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
-
-
-
                                             barreraNucleo(1);
                                             volverAEmpezar = true;
                                         }
@@ -1331,20 +1180,17 @@ namespace MultiProcessorSimulator
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
-
                                         //Aumento un ciclo por acceso a directorio local
                                         barreraNucleo(1);
                                         if (Simulador.directorioP0[numeroBloque, 0] == 0 || Simulador.directorioP0[numeroBloque, 0] == 1)//Si en el directorio esta U o C
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-
                                                 //Aumento 16 por escribir desde memoria local
                                                 barreraNucleo(16);
                                                 Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
@@ -1353,14 +1199,10 @@ namespace MultiProcessorSimulator
                                                 Simulador.directorioP0[numeroBloque, 2] = 1;//Indico que esta en cache
 
                                                 terminado = true;//Solo falta obtener de cache
-
                                             }
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-                                                //Falta regresar a estado anterior
-
-
                                                 barreraNucleo(1);
                                             }
                                         }
@@ -1396,9 +1238,6 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-
-
                                                         barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
@@ -1406,9 +1245,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-
-
                                                     barreraNucleo(1);
                                                 }
                                             }
@@ -1422,7 +1258,6 @@ namespace MultiProcessorSimulator
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(2, 0, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 40 por escribir desde cache remoto
                                                         barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP0);//Libero la memoria
@@ -1430,8 +1265,6 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN2[posCache, j];
                                                         }
-
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP0[numeroBloque, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN2[posCache, 1] = 1;//Pongo cache en C
@@ -1442,9 +1275,6 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-                                                        //Falta regresar a estado anterior
-
-
                                                         barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN2);//Libero la cache
@@ -1452,9 +1282,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-                                                    //Falta regresar a estado anterior
-
-
                                                     barreraNucleo(1);
                                                 }
                                             }
@@ -1464,8 +1291,6 @@ namespace MultiProcessorSimulator
                                     else//No se puede bloquear el directorio
                                     {
                                         terminado = false;
-
-
                                         barreraNucleo(1);
                                     }
                                 }
@@ -1480,11 +1305,8 @@ namespace MultiProcessorSimulator
                                         {
                                             if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
-
-
                                                 barreraNucleo(1);
                                                 guardarBloqueEnCache(posCache, numeroBloque, numPalabra, 1);//Guardo el bloque en la cache
-
                                                 //Aumento 16 por escribir desde memoria remota
                                                 barreraNucleo(40);
                                                 Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
@@ -1493,13 +1315,10 @@ namespace MultiProcessorSimulator
                                                 Simulador.directorioP1[numeroBloque - 16, 2] = 1;//Indico que esta en cache
 
                                                 terminado = true;//Solo falta obtener de cache
-
                                             }
                                             else//No se puede bloquear la memoria
                                             {
                                                 terminado = false;
-
-
                                                 barreraNucleo(1);
                                             }
                                         }
@@ -1511,11 +1330,9 @@ namespace MultiProcessorSimulator
                                                 {
                                                     if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria del P0
                                                     {
-
                                                         //Aumento ciclo por ingresar a memoria
                                                         barreraNucleo(1);
                                                         guardarAMemoria(0, 1, numeroBloque, posCache);//Guardo lo que tiene la cache en memoria
-
                                                         //Aumento 16 por escribir a memoria remota
                                                         barreraNucleo(40);
                                                         Monitor.Exit(Simulador.memCompartidaP1);//Libero la memoria
@@ -1523,8 +1340,6 @@ namespace MultiProcessorSimulator
                                                         {
                                                             Simulador.cacheDatosN1[posCache, j] = Simulador.cacheDatosN0[posCache, j];
                                                         }
-
-
                                                         barreraNucleo(1);
                                                         Simulador.directorioP1[numeroBloque - 16, 0] = 1;//Pongo directorio en C
                                                         Simulador.cacheDatosN0[posCache, 1] = 1;//Pongo cache en C
@@ -1535,8 +1350,6 @@ namespace MultiProcessorSimulator
                                                     else//No se puede bloquear la memoria
                                                     {
                                                         terminado = false;
-
-
                                                         barreraNucleo(1);
                                                     }
                                                     Monitor.Exit(Simulador.cacheDatosN0);//Libero la cache
@@ -1544,8 +1357,6 @@ namespace MultiProcessorSimulator
                                                 else//No se puede bloquear la cache
                                                 {
                                                     terminado = false;
-
-
                                                     barreraNucleo(1);
                                                 }
                                             }
@@ -1630,6 +1441,7 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
                     if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -1641,16 +1453,16 @@ namespace MultiProcessorSimulator
                                 {
                                     if (numProcesadorBloqueVictima == 0)//Si el bloque esta en el procesador 0
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo la memoria
+                                        if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio de la victima
                                         {
 
                                             //Aumento el ciclo por bloquear memoria
-                                            barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo el directorio de la victima
+                                            barreraNucleo(5);
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP0))//Bloqueo la memoria
                                             {
 
                                                 //Aumento ciclo por acceder a directorio remoto
-                                                barreraNucleo(5);
+                                                barreraNucleo(1);
                                                 guardarAMemoria(2, numProcesadorBloqueVictima, Simulador.cacheDatosN2[posCache, 0], posCache); //Guardo el bloque modificado de a victima a memoria
 
                                                 //Aumento el ciclo por guardar en memoria compartida del procesador
@@ -1662,7 +1474,7 @@ namespace MultiProcessorSimulator
                                                 Simulador.cacheDatosN2[posCache, 1] = 0;//Invalido la posicion en la cache
 
                                             }
-                                            else//Si no puedo blouear el directorio de la victima
+                                            else//Si no puedo bloquear la memoria
                                             {
 
 
@@ -1673,7 +1485,7 @@ namespace MultiProcessorSimulator
                                             }
                                             Monitor.Exit(Simulador.directorioP0);//Libero directorio de la victima
                                         }
-                                        else//No puedo bloquear la memoria
+                                        else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
 
@@ -1684,12 +1496,12 @@ namespace MultiProcessorSimulator
                                     }
                                     else //Si el bloque esta en el procesador 1
                                     {
-                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo la memoria remota 
+                                        if (Monitor.TryEnter(Simulador.directorioP1))//Bloqueo el directorio remoto de la 
                                         {
 
                                             //Aumento el ciclo por bloquear memoria
                                             barreraNucleo(1);
-                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo el directorio remoto de la victima
+                                            if (Monitor.TryEnter(Simulador.memCompartidaP1))//Bloqueo la memoria
                                             {
 
                                                 //Aumento ciclo por acceder a directorio local
@@ -1705,7 +1517,7 @@ namespace MultiProcessorSimulator
                                                 Simulador.cacheDatosN2[posCache, 1] = 0;//Invalido la posicion en la cache
 
                                             }
-                                            else//Si no puedo blouear el directorio de la victima
+                                            else//Si no puedo bloquear la memoria
                                             {
 
 
@@ -1715,7 +1527,7 @@ namespace MultiProcessorSimulator
                                             }
                                             Monitor.Exit(Simulador.directorioP1);//Libero directorio de la victima
                                         }
-                                        else//No puedo bloquear la memoria
+                                        else//No puedo bloquear el directorio
                                         {
                                             terminado = false;
 
@@ -1785,6 +1597,7 @@ namespace MultiProcessorSimulator
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
 
@@ -2082,7 +1895,7 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción SW
         /// </summary>
-        private void instruccionSW()
+        private void instruccionSW(int rand)
         {
             int numeroBloque = obtenerNumBloque();
             int numPalabra = obtenerNumPalabra();
@@ -2098,7 +1911,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
-
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN0))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -2389,6 +2203,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -2549,6 +2364,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
@@ -2737,6 +2553,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN1))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -3024,6 +2842,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -3184,6 +3003,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
@@ -3365,6 +3185,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN2))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -3652,6 +3474,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -3814,6 +3637,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
