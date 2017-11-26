@@ -441,8 +441,8 @@ namespace MultiProcessorSimulator
                 for (int j = 1; j < 33; ++j)
                 {
                     //Console.Write("R" + (j - 1) + ":");
-                    for (int k = 0; k < 3 - contextoP0[i][j].ToString().Length; k++) Console.Write(" ");
-                    Console.Write(contextoP0[i][j] + "|");
+                    for (int k = 0; k < 3 - contextoP1[i][j].ToString().Length; k++) Console.Write(" ");
+                    Console.Write(contextoP1[i][j] + "|");
                     //Console.Write(" ");
                 }
                 Console.Write("\n");
