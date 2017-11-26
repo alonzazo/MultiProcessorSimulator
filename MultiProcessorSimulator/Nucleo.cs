@@ -46,16 +46,18 @@ namespace MultiProcessorSimulator
         /// </summary>
         public void run()
         {
-            if (numProc == 0)
+            //-----------------------------------------------------------------LÓGICA DEL PROCESADOR 0
+            if (numProc == 0)                                  
             {
 
 
-                int numBloque;
-                int posCache;
-                int numInstruccion;
-                bool flag = true;
-                while (flag)
+                int numBloque;                              //Número de bloque 
+                int posCache;                               // Posición
+                int numInstruccion;                         
+                bool flag = true;                           //Flag de terminación del procesador
+                while (flag)                
                 {
+                    //Condición base: Verifica si gastó el quantum y si el contextoActual ya terminó.
                     if ((Simulador.quantum > 0) && Simulador.contextoP0[contextoActual][38] == -1)
                     {
                         //Solicitamos bus de memoria
@@ -67,40 +69,42 @@ namespace MultiProcessorSimulator
                             IR[2] = Simulador.memInstruccionesP0[PC + 2];
                             IR[3] = Simulador.memInstruccionesP0[PC + 3];
                         }*/
-                        lock (Simulador.contextoP0)
+                        lock (Simulador.contextoP0)                                         //Se bloquea el contexto P0
                         {
-                            if (Simulador.contextoP0[contextoActual][37] == -1)
+                            if (Simulador.contextoP0[contextoActual][37] == -1)             //Se verifica si ya empezó por primera vez
                             {
-                                Simulador.contextoP0[contextoActual][37] = 0;
-                                Simulador.contextoP0[contextoActual][36] = Simulador.reloj;
+                                Simulador.contextoP0[contextoActual][37] = 0;               // Se marca que ya empezó por primera vez
+                                Simulador.contextoP0[contextoActual][36] = Simulador.reloj; //Se firma el reloj de inicio en el contexto
                                 logExecution += "Reloj de inicio guardado en el contexto " + contextoActual + "del P0" + "\n";
                             }
 
                         }
 
-                        if (numNucleo == 0)
+                        if (numNucleo == 0)                                                 //------------FETCH DEL NÚCLEO 0
                         {
                             lock (Simulador.cacheInstruccionesN0)
                             {
-                                numBloque = obtenerNumBloqueInstruccion(numProc);
-                                posCache = obtenerPosCache(numBloque);
-                                numInstruccion = obtenerNumInstruccionBloque();
-                                if (!instruccionEnCache(numBloque, posCache, numNucleo))
+                                numBloque = obtenerNumBloqueInstruccion(numProc);           //Número de bloque en la memoria donde está la instrucción
+                                posCache = obtenerPosCache(numBloque);                      //Posición en la caché donde debe colocarse el bloque
+                                numInstruccion = obtenerNumInstruccionBloque();             //Número de isntrucción en el bloque de la caché donde debería estar
+
+                                if (!instruccionEnCache(numBloque, posCache, numNucleo))    //Verifica si la instrucción ya está en la caché
                                 {
 
                                     lock (Simulador.memInstruccionesP0)
                                     {
-                                        insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+                                        insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);//Se trae el bloque a la caché de instrucciones
                                     }
                                 }
-                                //insertarBloqueCacheInstrucciones(numBloque, posCache, numNucleo);
+
+                                //Se pasa la instrucción de la caché al registro de instrucción
                                 IR[0] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 1];
                                 IR[1] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 2];
                                 IR[2] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 3];
                                 IR[3] = Simulador.cacheInstruccionesN0[posCache, numInstruccion * 4 + 4];
                             }
                         }
-                        else
+                        else                                                                //------------FETCH DEL NÚCLEO 1
                         {
                             lock (Simulador.cacheInstruccionesN1)
                             {
@@ -187,11 +191,14 @@ namespace MultiProcessorSimulator
                             case 63:
                                 instruccionFIN();
                                 Simulador.quantum--;
+
+                                //Cambio de contexto inducido por finalización del hilillo.
                                 lock (Simulador.contextoP0)
                                 {
                                     Simulador.contextoP0[contextoActual][0] = PC;                       //Salvamos el PC en el contexto
-                                    for (int i = 0; i < registros.Length; i++)
-                                    {                        //Salvamos los registros en el contexto
+                                    
+                                    for (int i = 0; i < registros.Length; i++)                          //Salvamos los registros en el contexto
+                                    {                        
                                         Simulador.contextoP0[contextoActual][i + 1] = registros[i];
                                     }
                                     Simulador.contextoP0[contextoActual][34] = -1;                      //Marcamos el contexto como en desuso
@@ -307,6 +314,7 @@ namespace MultiProcessorSimulator
                     }
                 }
             }
+            //-----------------------------------------------------------------LÓGICA DEL PROCESADOR 1
             else
             {
                 bool flag = true;
@@ -540,8 +548,10 @@ namespace MultiProcessorSimulator
                     }
                 }
             }
-            Simulador.barrera.RemoveParticipant();
-            printLogExecution();
+
+
+            Simulador.barrera.RemoveParticipant();              //Se remueve un participante de la barrera.
+            printLogExecution();                                //Se imprime la bitácora de la simulación.
 
 
         }
