@@ -404,9 +404,12 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
-                    //Console.Write("R" + (j - 1) + ":");
+                    Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP0[i][j]);
-                    Console.Write(" ");
+                    if(j == 11 || j == 21 || j == 31)
+                        Console.Write("\n");
+                    else
+                        Console.Write(" ");
                 }
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP0[i][33]);
@@ -425,9 +428,12 @@ namespace MultiProcessorSimulator
                 Console.WriteLine("Registros:");
                 for (int j = 1; j < 33; ++j)
                 {
-                    //Console.Write("R" + (j - 1) + ":");
+                    Console.Write("R" + (j - 1) + ":");
                     Console.Write(contextoP1[i][j]);
-                    Console.Write(" ");
+                    if (j == 11 || j == 21 || j == 31)
+                        Console.Write("\n");
+                    else
+                        Console.Write(" ");
                 }
                 Console.Write("\n");
                 Console.WriteLine("Cantidad de ciclos en ejecutarse: " + contextoP1[i][33]);
