@@ -18,7 +18,7 @@ namespace MultiProcessorSimulator
         private int[] registros;
         private int quantumAux;
         private int modo;
-
+        private Random rnd;
         private String logExecution;
 
         public Nucleo(int numProc, int numNucleo, int[] contexto, int numContexto, int modo)
@@ -38,6 +38,7 @@ namespace MultiProcessorSimulator
             {
                 registros[i - 1] = contexto[i];
             }
+            rnd = new Random();
         }
 
 
@@ -179,12 +180,14 @@ namespace MultiProcessorSimulator
                                 break;
                             //Caso del LW
                             case 35:
-                                instruccionLW();
+                                
+                                instruccionLW(rnd.Next(1, 10));
                                 Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
-                                instruccionSW();
+                          
+                                instruccionSW(rnd.Next(11, 20));
                                 Simulador.quantum--;
                                 break;
                             //Caso del FIN
@@ -224,14 +227,14 @@ namespace MultiProcessorSimulator
                                         Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
                                         lock (Simulador.ConsoleWriterLock)
                                         {
-                                            Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                           /* Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
 
-                                            Simulador.printContexto();
+                                            Simulador.printContexto();*/
                                         }
                                         
                                     }
-                                    lock (Simulador.ConsoleWriterLock)
-                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    //lock (Simulador.ConsoleWriterLock)
+                                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -277,14 +280,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP0[contextoActual][i];
                                 }
                                 Simulador.contextoP0[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                lock (Simulador.ConsoleWriterLock)
-                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-                                lock (Simulador.ConsoleWriterLock)
-                                    Simulador.printContexto();
+                                //lock (Simulador.ConsoleWriterLock)
+                                    //Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -296,8 +299,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-                    lock (Simulador.ConsoleWriterLock)
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    //lock (Simulador.ConsoleWriterLock)
+                        //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                     //Revisamos si ya todos los hilillos del contexto terminaron para terminar el nucleo.
                     lock (Simulador.contextoP0)
                     {
@@ -417,12 +420,12 @@ namespace MultiProcessorSimulator
                                 break;
                             //Caso del LW
                             case 35:
-                                instruccionLW();
+                                instruccionLW(rnd.Next(1, 10));
                                 Simulador.quantum--;
                                 break;
                             //Caso del SW
                             case 43:
-                                instruccionSW();
+                                instruccionSW(rnd.Next(11, 20));
                                 Simulador.quantum--;
                                 break;
                             //Caso del FIN
@@ -458,15 +461,15 @@ namespace MultiProcessorSimulator
                                             registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                         }
                                         Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                        lock (Simulador.ConsoleWriterLock)
+                                        /*lock (Simulador.ConsoleWriterLock)
                                         {
                                             Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                             Simulador.printContexto();
-                                        }
+                                        }*/
                                             
                                     }
-                                    lock (Simulador.ConsoleWriterLock)
-                                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                                    //lock (Simulador.ConsoleWriterLock)
+                                      //  Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
                                 }
                                 break;
                             //Caso erroneo
@@ -514,14 +517,14 @@ namespace MultiProcessorSimulator
                                     registros[i - 1] = Simulador.contextoP1[contextoActual][i];
                                 }
                                 Simulador.contextoP1[contextoActual][34] = 0;                       //Marcamos el nuevo contexto como "en uso"
-                                lock (Simulador.ConsoleWriterLock)
-                                    Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Console.WriteLine("PROCESADOR " + numProc + " NUCLEO " + numNucleo + " hizo cambio de contexto al " + contextoActual);
                                 if (Simulador.quantum <= 0)
                                 {
                                     Simulador.quantum = quantumAux;
                                 }
-                                lock (Simulador.ConsoleWriterLock)
-                                    Simulador.printContexto();
+                                //lock (Simulador.ConsoleWriterLock)
+                                  //  Simulador.printContexto();
                             }
                             //
                             //Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
@@ -530,8 +533,8 @@ namespace MultiProcessorSimulator
 
                     barreraNucleo(1);
 
-                    lock (Simulador.ConsoleWriterLock)
-                        Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
+                    //lock (Simulador.ConsoleWriterLock)
+                      //  Console.WriteLine("Nucleo " + numNucleo + " ha pasado al ciclo " + cicloActual);
 
                     lock (Simulador.contextoP1)
                     {
@@ -661,7 +664,7 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción LW
         /// </summary>
-        private void instruccionLW()
+        private void instruccionLW(int rand)
         {
             logExecution += "Instrucción LW ejecutada en el contexto " + contextoActual + "\n";
             int numeroBloque = obtenerNumBloque();
@@ -677,6 +680,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN0))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -805,6 +810,7 @@ namespace MultiProcessorSimulator
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
                                         //Aumento un ciclo por acceso a directorio local
@@ -1053,6 +1059,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN1))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -1182,6 +1190,7 @@ namespace MultiProcessorSimulator
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
                                         //Aumento un ciclo por acceso a directorio local
@@ -1442,6 +1451,7 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverAEmpezar = false;
+                    rand = rnd.Next(1, 5);
                     if (Monitor.TryEnter(Simulador.cacheDatosN2))//Bloqueo la cache local
                     {
                         if (!bloqueEnCache(posCache, numeroBloque)) //Si no se encuentra en cache o esta invalido
@@ -1597,6 +1607,7 @@ namespace MultiProcessorSimulator
                                 //Ya me encargue de la victima del reemplazo
                                 if (numProcesadorBloque == 0)//Si el directorio que hay que bloquear es del P0
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))//Bloqueo el directorio del P0
                                     {
 
@@ -1894,7 +1905,7 @@ namespace MultiProcessorSimulator
         /// <summary>
         /// Ejecuta la instrucción SW
         /// </summary>
-        private void instruccionSW()
+        private void instruccionSW(int rand)
         {
             int numeroBloque = obtenerNumBloque();
             int numPalabra = obtenerNumPalabra();
@@ -1910,7 +1921,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
-
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN0))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -2201,6 +2213,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -2361,6 +2374,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
@@ -2549,6 +2563,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN1))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -2836,6 +2852,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -2996,6 +3013,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
@@ -3177,6 +3195,8 @@ namespace MultiProcessorSimulator
                 while (!terminado)
                 {
                     volverEmpezar = false;
+                    rand = rnd.Next(0, 15);
+                    Thread.Sleep(rand);
                     if (Monitor.TryEnter(Simulador.cacheDatosN2))
                     {
                         if (bloqueEnCache(posCache, numeroBloque))//Acierto
@@ -3464,6 +3484,7 @@ namespace MultiProcessorSimulator
                             {
                                 if (numeroBloque < 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP0))
                                     {
 
@@ -3626,6 +3647,7 @@ namespace MultiProcessorSimulator
                                 }
                                 else if (numeroBloque >= 16)
                                 {
+                                    Thread.Sleep(rand);
                                     if (Monitor.TryEnter(Simulador.directorioP1))
                                     {
 
